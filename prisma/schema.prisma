@@ -1,0 +1,192 @@
+// Bus Booking Web App (Pakistan) — Prisma schema
+// PostgreSQL (Supabase) + Next.js App Router / TypeScript
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  PASSENGER
+  OPERATOR
+  CONDUCTOR
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         UserRole @default(PASSENGER)
+  createdAt    DateTime @default(now())
+
+  operatedBuses Bus[]      @relation("BusOperator")
+  seatLocks     SeatLock[]
+  bookings      Booking[]
+
+  @@index([role])
+  @@map("users")
+}
+
+model Bus {
+  id         String   @id @default(cuid())
+  operatorId String
+  busNumber  String   @unique // e.g. "FL-2026-VIP", "DAEWOO-786"
+  layoutType String // "2x2", "2x1_SLEEPER"
+  totalSeats Int
+  createdAt  DateTime @default(now())
+
+  operator User   @relation("BusOperator", fields: [operatorId], references: [id], onDelete: Restrict)
+  trips    Trip[]
+
+  @@index([operatorId])
+  @@map("buses")
+}
+
+model Route {
+  id              String @id @default(cuid())
+  name            String
+  originCity      String
+  destinationCity String
+  distanceKm      Float
+
+  stops RouteStop[]
+  trips Trip[]
+
+  @@index([originCity, destinationCity])
+  @@map("routes")
+}
+
+model RouteStop {
+  id                 String @id @default(cuid())
+  routeId            String
+  stationName        String
+  stopOrder          Int // 1, 2, 3...
+  distanceFromOrigin Float // km from origin terminal
+
+  route           Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  boardingTickets Ticket[] @relation("TicketBoardingStop")
+  droppingTickets Ticket[] @relation("TicketDropStop")
+
+  @@unique([routeId, stopOrder])
+  @@index([routeId])
+  @@map("route_stops")
+}
+
+model Trip {
+  id            String   @id @default(cuid())
+  busId         String
+  routeId       String
+  departureTime DateTime
+  arrivalTime   DateTime
+  basePrice     Decimal // PKR
+
+  bus       Bus        @relation(fields: [busId], references: [id], onDelete: Restrict)
+  route     Route      @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  seatLocks SeatLock[]
+  bookings  Booking[]
+
+  @@index([busId])
+  @@index([routeId])
+  @@index([departureTime])
+  @@map("trips")
+}
+
+/// Temporary soft-hold while a passenger completes payment.
+model SeatLock {
+  id         String   @id @default(cuid())
+  tripId     String
+  seatNumber String
+  userId     String
+  lockToken  String   @unique
+  expiresAt  DateTime
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, seatNumber])
+  @@index([tripId, seatNumber])
+  @@index([expiresAt])
+  @@index([userId])
+  @@map("seat_locks")
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  pnr            String        @unique // e.g. "PKR-8921A"
+  userId         String
+  tripId         String
+  totalPrice     Decimal // PKR
+  paymentStatus  PaymentStatus @default(PENDING)
+  paymentMethod  String? // JAZZCASH | EASYPAISA | CARD
+  qrCodeUrl      String?
+  contactPhone   String?
+  contactEmail   String?
+  /// Comma-separated seat numbers held during PENDING checkout
+  heldSeats      String?
+  boardingStopId String?
+  dropStopId     String?
+  lockExpiresAt  DateTime?
+  createdAt      DateTime      @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  trip    Trip     @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  tickets Ticket[]
+
+  @@index([pnr])
+  @@index([userId])
+  @@index([tripId])
+  @@index([paymentStatus])
+  @@map("bookings")
+}
+
+model Ticket {
+  id              String    @id @default(cuid())
+  bookingId       String
+  seatNumber      String
+  passengerName   String
+  passengerGender Gender
+  passengerCnic   String?
+  boardingStopId  String
+  dropStopId      String
+  isBoarded       Boolean   @default(false)
+  boardedAt       DateTime?
+
+  booking      Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  boardingStop RouteStop @relation("TicketBoardingStop", fields: [boardingStopId], references: [id], onDelete: Restrict)
+  dropStop     RouteStop @relation("TicketDropStop", fields: [dropStopId], references: [id], onDelete: Restrict)
+
+  @@unique([bookingId, seatNumber])
+  @@index([bookingId])
+  @@index([boardingStopId])
+  @@index([dropStopId])
+  @@index([isBoarded])
+  @@map("tickets")
+}
