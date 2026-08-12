@@ -1,81 +1,161 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { MapPinned, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
+import {
+  BusFront,
+  Gift,
+  Headphones,
+  IdCard,
+  MapPinned,
+  ShieldCheck,
+  Sparkles,
+  Trees,
+  UsersRound,
+} from "lucide-react";
 import { SearchWidget } from "@/components/booking/SearchWidget";
+import { cn } from "@/lib/utils";
+
+const SERVICES = [
+  { href: "/", label: "Buses", icon: BusFront, active: true },
+  { href: "/pages/umrah-packages", label: "Umrah", icon: Sparkles },
+  { href: "/pages/holiday-packages", label: "Packages", icon: Trees },
+  { href: "/pages/visa", label: "Visa", icon: IdCard },
+  { href: "/air/sasta-rewards", label: "Rewards", icon: Gift },
+] as const;
+
+const ROUTES = [
+  { from: "Karachi", to: "Lahore", fromPrice: 4000 },
+  { from: "Lahore", to: "Islamabad", fromPrice: 2200 },
+  { from: "Karachi", to: "Multan", fromPrice: 3500 },
+  { from: "Islamabad", to: "Peshawar", fromPrice: 1800 },
+];
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#071b19] text-teal-50">
-      <section className="relative isolate min-h-[100svh] overflow-hidden">
+    <main className="bg-[#f3f6fb] text-[#0a2f6b]">
+      <section className="relative isolate overflow-hidden bg-[#0a2f6b]">
         <div
           aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_20%,rgba(45,212,191,0.22),transparent_45%),radial-gradient(ellipse_at_80%_10%,rgba(251,191,36,0.14),transparent_40%),linear-gradient(160deg,#041312_0%,#0b2f2a_48%,#123f38_100%)]"
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_15%_0%,rgba(245,166,35,0.22),transparent_42%),radial-gradient(ellipse_at_90%_20%,rgba(255,255,255,0.12),transparent_45%)]"
         />
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(circle_at_center,black,transparent_78%)]"
-        />
-        <div
-          aria-hidden
-          className="absolute -right-20 bottom-[-10%] h-[55vh] w-[70vw] rounded-full bg-[radial-gradient(circle,rgba(20,184,166,0.28),transparent_65%)] blur-2xl"
+          className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#f3f6fb]"
         />
 
-        <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 sm:px-6">
-          <Link
-            href="/"
-            className="font-heading text-2xl font-semibold tracking-tight text-teal-50"
-          >
-            SafarPK
-          </Link>
-          <p className="hidden text-sm text-teal-100/70 sm:block">
-            Intercity buses · Pakistan
-          </p>
-        </header>
-
-        <div className="relative z-10 mx-auto flex min-h-[calc(100svh-5.5rem)] w-full max-w-6xl flex-col justify-center gap-8 px-4 pb-16 sm:px-6">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
           <div className="max-w-3xl animate-[fadeRise_700ms_ease-out]">
-            <p className="mb-3 text-sm tracking-[0.22em] text-teal-200/80 uppercase">
-              SafarPK
+            <p className="font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl">
+              Safar<span className="text-[#f5a623]">PK</span>
             </p>
-            <h1 className="font-heading text-4xl leading-[1.08] font-semibold tracking-tight text-balance text-white sm:text-5xl lg:text-6xl">
-              Book Intercity Bus Tickets across Pakistan with Zero Hassle
+            <h1 className="mt-3 text-xl font-medium text-white/90 sm:text-2xl">
+              Travel Bookings Made Easy
             </h1>
-            <p className="mt-4 max-w-xl text-base text-teal-100/75 sm:text-lg">
-              Search Karachi to Lahore and beyond — lock your seat in seconds
-              before someone else does.
+            <p className="mt-2 max-w-xl text-sm text-white/70 sm:text-base">
+              Search intercity buses, lock seats in seconds, and board with a
+              clear e-ticket — built for Pakistan routes.
             </p>
           </div>
 
-          <div className="animate-[fadeRise_900ms_ease-out]">
+          <div className="mt-8 flex flex-wrap gap-2 animate-[fadeRise_800ms_ease-out]">
+            {SERVICES.map((service) => {
+              const Icon = service.icon;
+              return (
+                <Link
+                  key={service.label}
+                  href={service.href}
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition",
+                    "active" in service && service.active
+                      ? "bg-white text-[#0a2f6b] shadow-sm"
+                      : "bg-[#08305f] text-white/90 hover:bg-[#0d3a72]",
+                  )}
+                >
+                  <Icon className="size-4" />
+                  {service.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="relative z-10 mt-6 animate-[fadeRise_900ms_ease-out]">
             <SearchWidget />
           </div>
         </div>
       </section>
 
-      <section className="relative bg-[#f4f8f6] px-4 py-20 text-teal-950 sm:px-6">
-        <div className="mx-auto grid w-full max-w-6xl gap-10 md:grid-cols-3">
+      <section className="border-b border-[#0a2f6b]/8 bg-[#e8eef8] px-4 py-4 sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-full bg-[#0a2f6b] text-white">
+              <Headphones className="size-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#0a2f6b]">
+                24/7 Customer Support
+              </p>
+              <p className="text-xs text-[#0a2f6b]/65">
+                Speak to a travel expert for booking help
+              </p>
+            </div>
+          </div>
+          <a
+            href="tel:021111172782"
+            className="text-sm font-medium text-[#0a2f6b] underline-offset-2 hover:underline"
+          >
+            Call (021) 111 172 782
+          </a>
+        </div>
+      </section>
+
+      <section className="px-4 py-14 sm:px-6">
+        <div className="mx-auto w-full max-w-6xl">
+          <h2 className="font-heading text-2xl font-semibold text-[#0a2f6b]">
+            Popular Routes
+          </h2>
+          <p className="mt-1 text-sm text-[#0a2f6b]/65">
+            Start with Pakistan&apos;s busiest corridors.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {ROUTES.map((route) => (
+              <Link
+                key={`${route.from}-${route.to}`}
+                href={`/search?origin=${encodeURIComponent(route.from)}&destination=${encodeURIComponent(route.to)}`}
+                className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-[#0a2f6b]/25 hover:shadow-md"
+              >
+                <p className="font-medium text-[#0a2f6b]">
+                  {route.from} → {route.to}
+                </p>
+                <p className="mt-2 text-xs text-[#0a2f6b]/55">Starting from</p>
+                <p className="font-heading text-lg font-semibold text-[#0a2f6b]">
+                  PKR {route.fromPrice.toLocaleString("en-PK")}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pb-16 sm:px-6">
+        <div className="mx-auto grid w-full max-w-6xl gap-6 md:grid-cols-3">
           <Feature
             icon={<MapPinned className="size-5" />}
             title="Live Tracking"
             text="Know where your coach is along major corridors from Sindh to Punjab."
-            delay="0ms"
           />
           <Feature
             icon={<Sparkles className="size-5" />}
             title="Instant Seat Selection"
             text="Pick from a live 2D seat map with 10-minute holds so double-booking never ruins your trip."
-            delay="80ms"
           />
           <Feature
             icon={<UsersRound className="size-5" />}
             title="Female-Friendly Seating"
-            text="Clear seat cues help families and women travelers choose comfortable, respectful seating."
-            delay="160ms"
+            text="Clear pink / blue seat cues help families and women travellers choose comfortable seating."
           />
         </div>
 
-        <div className="mx-auto mt-16 flex max-w-6xl items-center gap-3 rounded-2xl border border-teal-900/10 bg-white px-5 py-4 text-sm text-teal-900/70">
-          <ShieldCheck className="size-5 text-teal-700" />
+        <div className="mx-auto mt-10 flex max-w-6xl items-center gap-3 rounded-2xl border border-[#0a2f6b]/10 bg-white px-5 py-4 text-sm text-[#0a2f6b]/70">
+          <ShieldCheck className="size-5 text-[#0a2f6b]" />
           Secure holds powered by Redis + Prisma — built for Pakistani routes.
         </div>
       </section>
@@ -87,23 +167,18 @@ function Feature({
   icon,
   title,
   text,
-  delay,
 }: {
   icon: ReactNode;
   title: string;
   text: string;
-  delay: string;
 }) {
   return (
-    <article
-      className="group animate-[fadeRise_800ms_ease-out] rounded-2xl border border-teal-900/8 bg-white/80 p-6 transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-28px_rgba(8,40,36,0.45)]"
-      style={{ animationDelay: delay }}
-    >
-      <div className="mb-4 inline-flex size-10 items-center justify-center rounded-xl bg-teal-800 text-teal-50 transition group-hover:scale-105">
+    <article className="rounded-2xl border border-[#0a2f6b]/8 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-28px_rgba(10,47,107,0.35)]">
+      <div className="mb-4 inline-flex size-10 items-center justify-center rounded-xl bg-[#0a2f6b] text-white">
         {icon}
       </div>
       <h2 className="font-heading text-xl font-semibold">{title}</h2>
-      <p className="mt-2 text-sm leading-relaxed text-teal-900/65">{text}</p>
+      <p className="mt-2 text-sm leading-relaxed text-[#0a2f6b]/65">{text}</p>
     </article>
   );
 }

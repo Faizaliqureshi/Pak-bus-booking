@@ -76,22 +76,22 @@ export function SearchWidget({
     <form
       onSubmit={onSearch}
       className={cn(
-        "w-full rounded-2xl border border-white/15 bg-white/95 p-4 shadow-[0_20px_60px_-20px_rgba(8,40,36,0.45)] backdrop-blur-md sm:p-5",
-        compact && "shadow-md",
+        "w-full rounded-2xl border border-[#0a2f6b]/8 bg-[#eef2f8] p-4 shadow-[0_24px_60px_-28px_rgba(8,30,70,0.55)] sm:p-5",
+        compact && "border-[#0a2f6b]/10 bg-white shadow-sm",
         className,
       )}
     >
       <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_1fr_auto] md:items-end">
         <div className="space-y-1.5">
-          <Label htmlFor="origin" className="text-xs font-medium text-teal-950/70">
-            From
+          <Label htmlFor="origin" className="text-xs font-medium text-[#0a2f6b]/65">
+            Leaving From
           </Label>
           <div className="relative">
-            <MapPin className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-teal-800/50" />
+            <MapPin className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-[#0a2f6b]/45" />
             <Select value={origin} onValueChange={(v) => v && setOrigin(v)}>
               <SelectTrigger
                 id="origin"
-                className="h-11 w-full min-w-0 border-teal-900/10 bg-teal-50/40 pl-8"
+                className="h-12 w-full min-w-0 border-transparent bg-white pl-8 text-[#0a2f6b]"
               >
                 <SelectValue placeholder="Origin city" />
               </SelectTrigger>
@@ -112,7 +112,7 @@ export function SearchWidget({
             variant="outline"
             size="icon"
             onClick={swapCities}
-            className="size-11 shrink-0 border-teal-900/10 bg-white text-teal-900 hover:bg-teal-50"
+            className="size-12 shrink-0 rounded-full border-white bg-white text-[#0a2f6b] shadow-sm hover:bg-[#f5f8fc]"
             aria-label="Swap cities"
           >
             <ArrowRightLeft className="size-4" />
@@ -122,19 +122,19 @@ export function SearchWidget({
         <div className="space-y-1.5">
           <Label
             htmlFor="destination"
-            className="text-xs font-medium text-teal-950/70"
+            className="text-xs font-medium text-[#0a2f6b]/65"
           >
-            To
+            Going To
           </Label>
           <div className="relative">
-            <BusFront className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-teal-800/50" />
+            <BusFront className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-[#0a2f6b]/45" />
             <Select
               value={destination}
               onValueChange={(v) => v && setDestination(v)}
             >
               <SelectTrigger
                 id="destination"
-                className="h-11 w-full min-w-0 border-teal-900/10 bg-teal-50/40 pl-8"
+                className="h-12 w-full min-w-0 border-transparent bg-white pl-8 text-[#0a2f6b]"
               >
                 <SelectValue placeholder="Destination city" />
               </SelectTrigger>
@@ -150,18 +150,18 @@ export function SearchWidget({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="date" className="text-xs font-medium text-teal-950/70">
-            Travel date
+          <Label htmlFor="date" className="text-xs font-medium text-[#0a2f6b]/65">
+            Departure date
           </Label>
           <div className="relative">
-            <CalendarDays className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-teal-800/50" />
+            <CalendarDays className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-[#0a2f6b]/45" />
             <Input
               id="date"
               type="date"
               min={minDate}
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="h-11 border-teal-900/10 bg-teal-50/40 pl-8"
+              className="h-12 border-transparent bg-white pl-8 text-[#0a2f6b]"
             />
           </div>
         </div>
@@ -169,7 +169,7 @@ export function SearchWidget({
         <Button
           type="submit"
           size="lg"
-          className="h-11 bg-teal-800 px-6 text-white hover:bg-teal-700 md:min-w-[140px]"
+          className="h-12 bg-[#0a2f6b] px-6 text-white hover:bg-[#08305f] md:min-w-[150px]"
         >
           Search Buses
         </Button>

@@ -1,30 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import Link from "next/link";
 import {
-  Armchair,
-  Clock3,
+  Bus,
+  ChevronDown,
   Filter,
+  Headphones,
   Loader2,
-  MapPinned,
+  Monitor,
   Moon,
   Sun,
   Sunset,
+  Tag,
 } from "lucide-react";
 import { InteractiveSeatMap } from "@/components/booking/InteractiveSeatMap";
 import { SearchWidget } from "@/components/booking/SearchWidget";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import {
   busTypeLabel,
@@ -84,6 +77,16 @@ function matchesBusType(layoutType: string, filter: BusTypeFilter): boolean {
   return !layoutType.includes("2x1") && !layoutType.includes("SLEEPER");
 }
 
+/** Simple deterministic deal discount for demo marketplace look */
+function dealForTrip(tripId: string, basePrice: number): number {
+  let hash = 0;
+  for (let i = 0; i < tripId.length; i++) {
+    hash = (hash + tripId.charCodeAt(i) * (i + 1)) % 997;
+  }
+  const discount = 400 + (hash % 6) * 100;
+  return Math.min(discount, Math.floor(basePrice * 0.2));
+}
+
 interface SearchResultsClientProps {
   origin: string;
   destination: string;
@@ -105,15 +108,14 @@ export function SearchResultsClient({
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [priceBounds, setPriceBounds] = useState<[number, number]>([0, 10000]);
 
-  const [selectedTrip, setSelectedTrip] = useState<TripSearchResult | null>(
-    null,
-  );
+  const [expandedTripId, setExpandedTripId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       setLoading(true);
       setError(null);
+      setExpandedTripId(null);
       try {
         const params = new URLSearchParams({ origin, destination, date });
         const [tripsRes, userRes] = await Promise.all([
@@ -190,26 +192,47 @@ export function SearchResultsClient({
     );
   }
 
+  function toggleExpand(tripId: string) {
+    setExpandedTripId((prev) => (prev === tripId ? null : tripId));
+  }
+
+  const dateLabel = useMemo(() => {
+    const [y, m, d] = date.split("-").map(Number);
+    if (!y || !m || !d) return date;
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    const weekdays = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const dt = new Date(Date.UTC(y, m - 1, d, 12));
+    return `${weekdays[dt.getUTCDay()]}, ${d} ${months[m - 1]} ${y}`;
+  }, [date]);
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <div className="mb-6">
-        <Link
-          href="/"
-          className="font-heading text-lg font-semibold tracking-tight text-teal-950"
-        >
-          SafarPK
-        </Link>
-        <h1 className="mt-3 font-heading text-3xl font-semibold text-teal-950">
+        <h1 className="font-heading text-3xl font-semibold text-[#0a2f6b]">
           {origin} → {destination}
         </h1>
-        <p className="mt-1 text-teal-900/65">
-          {new Date(`${date}T12:00:00`).toLocaleDateString("en-PK", {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
+        <p className="mt-1 text-[#0a2f6b]/65">{dateLabel}</p>
       </div>
 
       <SearchWidget
@@ -220,16 +243,16 @@ export function SearchResultsClient({
         className="mb-8"
       />
 
-      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-        <aside className="h-fit rounded-2xl border border-teal-900/10 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex items-center gap-2 text-teal-950">
+      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+        <aside className="h-fit rounded-2xl border border-[#0a2f6b]/10 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex items-center gap-2 text-[#0a2f6b]">
             <Filter className="size-4" />
             <h2 className="font-heading text-lg font-semibold">Filters</h2>
           </div>
 
           <div className="space-y-5">
             <div>
-              <p className="mb-2 text-xs font-medium tracking-wide text-teal-900/55 uppercase">
+              <p className="mb-2 text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
                 Departure time
               </p>
               <div className="space-y-2">
@@ -257,7 +280,7 @@ export function SearchResultsClient({
             <Separator />
 
             <div>
-              <p className="mb-2 text-xs font-medium tracking-wide text-teal-900/55 uppercase">
+              <p className="mb-2 text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
                 Bus type
               </p>
               <div className="space-y-2">
@@ -278,10 +301,10 @@ export function SearchResultsClient({
 
             <div>
               <div className="mb-3 flex items-center justify-between">
-                <Label className="text-xs font-medium tracking-wide text-teal-900/55 uppercase">
+                <Label className="text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
                   Price range
                 </Label>
-                <span className="text-xs text-teal-900/70">
+                <span className="text-xs text-[#0a2f6b]/70">
                   {formatPkr(priceRange[0])} – {formatPkr(priceRange[1])}
                 </span>
               </div>
@@ -302,7 +325,7 @@ export function SearchResultsClient({
 
         <section className="space-y-4">
           {loading ? (
-            <div className="flex h-48 items-center justify-center gap-2 rounded-2xl border border-dashed border-teal-900/15 bg-white text-teal-900/70">
+            <div className="flex h-48 items-center justify-center gap-2 rounded-2xl border border-dashed border-[#0a2f6b]/15 bg-white text-[#0a2f6b]/70">
               <Loader2 className="size-5 animate-spin" />
               Finding buses…
             </div>
@@ -315,121 +338,167 @@ export function SearchResultsClient({
           ) : null}
 
           {!loading && !error && filtered.length === 0 ? (
-            <div className="rounded-2xl border border-teal-900/10 bg-white p-8 text-center">
-              <p className="font-heading text-xl text-teal-950">
+            <div className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-8 text-center">
+              <p className="font-heading text-xl text-[#0a2f6b]">
                 No trips match these filters
               </p>
-              <p className="mt-2 text-sm text-teal-900/65">
+              <p className="mt-2 text-sm text-[#0a2f6b]/65">
                 Try Karachi → Lahore for tomorrow after seeding the database.
               </p>
             </div>
           ) : null}
 
-          {filtered.map((trip) => (
-            <Card
-              key={trip.id}
-              className="overflow-hidden border-teal-900/10 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <CardContent className="grid gap-4 p-5 md:grid-cols-[1.4fr_1fr_auto] md:items-center">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-heading text-xl font-semibold text-teal-950">
-                      {trip.operator.name}
-                    </h3>
-                    <Badge
-                      variant="secondary"
-                      className="bg-teal-900/5 text-teal-900"
-                    >
-                      {busTypeLabel(trip.bus.layoutType)}
-                    </Badge>
-                    <Badge variant="outline">{trip.bus.busNumber}</Badge>
-                  </div>
+          {filtered.map((trip) => {
+            const expanded = expandedTripId === trip.id;
+            const deal = dealForTrip(trip.id, trip.basePrice);
+            const salePrice = trip.basePrice - deal;
+            const classLabel = busTypeLabel(trip.bus.layoutType).includes(
+              "Sleeper",
+            )
+              ? "Sleeper Class"
+              : "Executive Class";
 
-                  <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-                    <div>
-                      <p className="font-heading text-2xl font-semibold text-teal-950">
+            return (
+              <article
+                key={trip.id}
+                className={cn(
+                  "overflow-hidden rounded-2xl border bg-white shadow-sm transition",
+                  expanded
+                    ? "border-[#f5a623]/60"
+                    : "border-[#0a2f6b]/10 hover:border-[#0a2f6b]/20",
+                )}
+              >
+                {deal > 0 ? (
+                  <div className="flex items-center gap-2 bg-[#fff4e0] px-4 py-1.5 text-xs font-medium text-[#9a6200]">
+                    <Tag className="size-3.5 text-[#f5a623]" />
+                    SafarDeal: Save {formatPkr(deal)}
+                  </div>
+                ) : null}
+
+                <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-[1fr_auto] md:items-center">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex size-12 items-center justify-center rounded-xl bg-[#e8eef8] font-heading text-sm font-bold text-[#0a2f6b]">
+                        {trip.operator.name
+                          .split(" ")
+                          .map((w) => w[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="font-heading text-lg font-semibold text-[#0a2f6b]">
+                          {trip.operator.name}
+                        </h3>
+                        <p className="text-xs text-[#0a2f6b]/55">
+                          {trip.bus.busNumber}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <p className="font-heading text-2xl font-semibold text-[#0a2f6b]">
                         {formatTime(trip.departureTime)}
                       </p>
-                      <p className="mt-1 flex items-start gap-1 text-sm text-teal-900/65">
-                        <MapPinned className="mt-0.5 size-3.5 shrink-0" />
-                        {trip.boardingStop?.name ?? trip.route.originCity}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-center text-teal-900/55">
-                      <Clock3 className="size-3.5" />
-                      <span className="mt-1 text-xs">
-                        {formatDuration(trip.durationMs)}
+                      <span className="inline-flex items-center gap-2 text-[#0a2f6b]/35">
+                        <span className="h-px w-6 bg-current sm:w-10" />
+                        <Bus className="size-4" />
+                        <span className="h-px w-6 bg-current sm:w-10" />
                       </span>
-                      <div className="mt-1 h-px w-16 bg-teal-900/15" />
-                    </div>
-                    <div className="sm:text-right">
-                      <p className="font-heading text-2xl font-semibold text-teal-950">
+                      <p className="font-heading text-2xl font-semibold text-[#0a2f6b]">
                         {formatTime(trip.arrivalTime)}
                       </p>
-                      <p className="mt-1 flex items-start gap-1 text-sm text-teal-900/65 sm:justify-end">
-                        <MapPinned className="mt-0.5 size-3.5 shrink-0" />
-                        {trip.dropStop?.name ?? trip.route.destinationCity}
+                      <span className="text-xs text-[#0a2f6b]/45">
+                        {formatDuration(trip.durationMs)}
+                      </span>
+                    </div>
+
+                    <p className="mt-2 text-sm font-medium text-[#0a2f6b]">
+                      {trip.route.originCity} — {trip.route.destinationCity}
+                    </p>
+                    <p className="mt-1 text-xs text-[#0a2f6b]/55">
+                      {trip.boardingStop?.name ?? trip.route.originCity} —{" "}
+                      {trip.dropStop?.name ?? trip.route.destinationCity}
+                    </p>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 text-[#0a2f6b]/45">
+                        <Headphones className="size-3.5" />
+                        <Monitor className="size-3.5" />
+                      </span>
+                      <Badge
+                        variant="secondary"
+                        className="bg-[#eef2f8] text-[#0a2f6b]"
+                      >
+                        {classLabel}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-red-300 text-red-600"
+                      >
+                        Non Refundable
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-stretch gap-2 md:items-end">
+                    <div className="text-right">
+                      {deal > 0 ? (
+                        <p className="text-sm text-[#0a2f6b]/45 line-through">
+                          {formatPkr(trip.basePrice)}
+                        </p>
+                      ) : null}
+                      <p className="font-heading text-2xl font-semibold text-[#0a2f6b]">
+                        {formatPkr(salePrice)}
                       </p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleExpand(trip.id)}
+                      className={cn(
+                        "inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition",
+                        expanded
+                          ? "bg-[#0a2f6b] text-white"
+                          : "bg-[#0a2f6b] text-white hover:bg-[#08305f]",
+                      )}
+                    >
+                      Check Seats
+                      <ChevronDown
+                        className={cn(
+                          "size-4 transition",
+                          expanded && "rotate-180",
+                        )}
+                      />
+                    </button>
                   </div>
                 </div>
 
-                <div className="md:text-center">
-                  <p className="text-xs tracking-wide text-teal-900/55 uppercase">
-                    From
-                  </p>
-                  <p className="font-heading text-3xl font-semibold text-teal-800">
-                    {formatPkr(trip.basePrice)}
-                  </p>
-                  <p className="text-xs text-teal-900/55">per seat</p>
-                </div>
-
-                <Button
-                  className="h-11 bg-teal-800 text-white hover:bg-teal-700"
-                  onClick={() => setSelectedTrip(trip)}
-                >
-                  <Armchair className="size-4" />
-                  Select Seats
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                {expanded ? (
+                  <div className="border-t border-[#0a2f6b]/8 bg-[#fafbfd] p-4 sm:p-5">
+                    {trip.boardingStop && trip.dropStop && userId ? (
+                      <InteractiveSeatMap
+                        tripId={trip.id}
+                        boardingStopId={trip.boardingStop.id}
+                        dropStopId={trip.dropStop.id}
+                        basePrice={trip.basePrice}
+                        dealDiscount={deal}
+                        layoutType={trip.bus.layoutType}
+                        userId={userId}
+                        operatorName={trip.operator.name}
+                      />
+                    ) : (
+                      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                        Demo user not found. Run{" "}
+                        <code>npx prisma db seed</code>.
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
         </section>
       </div>
-
-      <Sheet
-        open={!!selectedTrip}
-        onOpenChange={(open) => {
-          if (!open) setSelectedTrip(null);
-        }}
-      >
-        <SheetContent
-          side="right"
-          className="w-full gap-0 overflow-hidden p-4 sm:max-w-md"
-        >
-          <SheetHeader className="px-1 pb-2">
-            <SheetTitle className="sr-only">Select seats</SheetTitle>
-          </SheetHeader>
-          {selectedTrip &&
-          selectedTrip.boardingStop &&
-          selectedTrip.dropStop &&
-          userId ? (
-            <InteractiveSeatMap
-              tripId={selectedTrip.id}
-              boardingStopId={selectedTrip.boardingStop.id}
-              dropStopId={selectedTrip.dropStop.id}
-              basePrice={selectedTrip.basePrice}
-              layoutType={selectedTrip.bus.layoutType}
-              userId={userId}
-              operatorName={selectedTrip.operator.name}
-            />
-          ) : selectedTrip && !userId ? (
-            <div className="p-4 text-sm text-red-700">
-              Demo user not found. Run <code>npx prisma db seed</code>.
-            </div>
-          ) : null}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
@@ -452,8 +521,8 @@ function FilterChip({
       className={cn(
         "flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition",
         active
-          ? "border-teal-800 bg-teal-800 text-white"
-          : "border-teal-900/10 bg-teal-50/40 text-teal-950 hover:bg-teal-50",
+          ? "border-[#0a2f6b] bg-[#0a2f6b] text-white"
+          : "border-[#0a2f6b]/10 bg-[#f3f6fb] text-[#0a2f6b] hover:bg-[#e8eef8]",
       )}
     >
       {icon}

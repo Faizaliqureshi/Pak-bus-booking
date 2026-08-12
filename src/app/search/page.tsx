@@ -16,7 +16,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const date = params.date?.trim() || defaultTravelDate();
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#e8f5f1,_#f7faf9_45%,_#eef2f0)]">
+    <main className="min-h-screen bg-[#f3f6fb]">
       <SearchResultsClient
         origin={origin}
         destination={destination}
