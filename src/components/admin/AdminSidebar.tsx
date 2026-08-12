@@ -8,11 +8,13 @@ import {
   LayoutDashboard,
   MapPinned,
   Settings,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/admin/partners", label: "Partners", icon: Users },
   { href: "/admin/routes", label: "Routes & Trips", icon: MapPinned },
   { href: "/admin/buses", label: "Fleet Manager", icon: Bus },
   { href: "/admin/manifest", label: "Passenger Manifests", icon: ClipboardList },

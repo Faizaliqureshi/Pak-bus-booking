@@ -44,13 +44,10 @@ export default function HomePage() {
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
           <div className="max-w-3xl animate-[fadeRise_700ms_ease-out]">
-            <p className="font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              Safar<span className="text-[#f5a623]">PK</span>
-            </p>
-            <h1 className="mt-3 text-xl font-medium text-white/90 sm:text-2xl">
+            <h1 className="font-heading text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
               Travel Bookings Made Easy
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-white/70 sm:text-base">
+            <p className="mt-3 max-w-xl text-sm text-white/70 sm:text-base">
               Search intercity buses, lock seats in seconds, and board with a
               clear e-ticket — built for Pakistan routes.
             </p>
@@ -99,10 +96,10 @@ export default function HomePage() {
             </div>
           </div>
           <a
-            href="tel:021111172782"
+            href="tel:03123137349"
             className="text-sm font-medium text-[#0a2f6b] underline-offset-2 hover:underline"
           >
-            Call (021) 111 172 782
+            Call 0312 3137349
           </a>
         </div>
       </section>

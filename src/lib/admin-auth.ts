@@ -1,37 +1,59 @@
 import { UserRole } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
 
-export type AdminUser = {
+export type StaffUser = {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  createdById?: string | null;
 };
 
-const ADMIN_ROLES: UserRole[] = [UserRole.OPERATOR, UserRole.ADMIN];
+const ADMIN_CONSOLE_ROLES: UserRole[] = [UserRole.ADMIN, UserRole.MASTER];
 
 /**
- * Placeholder admin session — uses seeded operator/admin until real auth lands.
- * Replace with NextAuth / session cookies in production.
+ * Session user allowed into /admin console (ADMIN or MASTER).
+ * MASTER can also use admin overview; partners use /partner.
  */
-export async function getAdminUser(): Promise<AdminUser | null> {
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { email: "operator@daewoo.pk", role: UserRole.OPERATOR },
-        { role: { in: ADMIN_ROLES } },
-      ],
-    },
-    orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, email: true, role: true },
-  });
+export async function getAdminUser(): Promise<StaffUser | null> {
+  const user = await getSessionUser();
+  if (!user) return null;
+  if (!ADMIN_CONSOLE_ROLES.includes(user.role)) return null;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    createdById: user.createdById,
+  };
+}
 
-  if (!user || !ADMIN_ROLES.includes(user.role)) return null;
-  return user;
+export async function getMasterUser(): Promise<StaffUser | null> {
+  const user = await getSessionUser();
+  if (!user || user.role !== UserRole.MASTER) return null;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    createdById: user.createdById,
+  };
+}
+
+export async function getPartnerUser(): Promise<StaffUser | null> {
+  const user = await getSessionUser();
+  if (!user || user.role !== UserRole.OPERATOR) return null;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    createdById: user.createdById,
+  };
 }
 
 export function assertAdminRole(role: UserRole): boolean {
-  return ADMIN_ROLES.includes(role);
+  return ADMIN_CONSOLE_ROLES.includes(role);
 }
 
 export function dayBoundsPkt(date = new Date()): { start: Date; end: Date } {
@@ -41,7 +63,6 @@ export function dayBoundsPkt(date = new Date()): { start: Date; end: Date } {
     month: "2-digit",
     day: "2-digit",
   }).format(date);
-  // en-CA => YYYY-MM-DD
   const start = new Date(`${parts}T00:00:00+05:00`);
   const end = new Date(`${parts}T23:59:59.999+05:00`);
   return { start, end };

@@ -7,10 +7,16 @@ export default function ContactUsPage() {
       subtitle="Talk to our travel support team any time."
     >
       <p>
-        <strong>Phone:</strong> (021) 111 172 782
+        <strong>Phone:</strong>{" "}
+        <a href="tel:03123137349" className="font-medium text-[#0a2f6b] underline">
+          0312 3137349
+        </a>
       </p>
       <p>
-        <strong>WhatsApp:</strong> +92 304 777 2782
+        <strong>WhatsApp:</strong>{" "}
+        <a href="https://wa.me/923123137349" className="font-medium text-[#0a2f6b] underline">
+          0312 3137349
+        </a>
       </p>
       <p>
         <strong>Email:</strong> support@safarpk.pk

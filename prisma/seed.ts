@@ -4,18 +4,25 @@ import {
   PrismaClient,
   UserRole,
 } from "@prisma/client";
+import { randomBytes, scryptSync } from "crypto";
 
 const prisma = new PrismaClient();
 
-/** Placeholder hash — replace with bcrypt in auth flows */
-const DEMO_PASSWORD_HASH =
-  "$2b$10$demo.hash.replace.with.bcrypt.in.productionxx";
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `scrypt$${salt}$${hash}`;
+}
 
 async function clearDatabase() {
-  // Child → parent order respects foreign keys
   await prisma.ticket.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.seatLock.deleteMany();
+  await prisma.rewardTransaction.deleteMany();
+  await prisma.rewardsAccount.deleteMany();
+  await prisma.walletTransaction.deleteMany();
+  await prisma.wallet.deleteMany();
+  await prisma.partnerApplication.deleteMany();
   await prisma.trip.deleteMany();
   await prisma.routeStop.deleteMany();
   await prisma.route.deleteMany();
@@ -29,25 +36,50 @@ async function main() {
 
   console.log("Seeding Pakistani bus booking demo data...");
 
+  const master = await prisma.user.create({
+    data: {
+      email: "master@safarpk.pk",
+      passwordHash: hashPassword("password123"),
+      name: "SafarPK Master",
+      phone: "+923001110000",
+      role: UserRole.MASTER,
+    },
+  });
+
+  const admin = await prisma.user.create({
+    data: {
+      email: "admin@safarpk.pk",
+      passwordHash: hashPassword("password123"),
+      name: "Platform Admin",
+      phone: "+923001110001",
+      role: UserRole.ADMIN,
+      createdById: master.id,
+    },
+  });
+
   const operator = await prisma.user.create({
     data: {
       email: "operator@daewoo.pk",
-      passwordHash: DEMO_PASSWORD_HASH,
+      passwordHash: hashPassword("password123"),
       name: "Daewoo Express Operator",
       phone: "+923001112233",
       role: UserRole.OPERATOR,
+      createdById: admin.id,
     },
   });
 
   const passenger = await prisma.user.create({
     data: {
       email: "ali.khan@example.pk",
-      passwordHash: DEMO_PASSWORD_HASH,
+      passwordHash: hashPassword("password123"),
       name: "Ali Khan",
       phone: "+923334445566",
       role: UserRole.PASSENGER,
     },
   });
+
+  // silence unused
+  void passenger;
 
   const bus = await prisma.bus.create({
     data: {
@@ -82,7 +114,7 @@ async function main() {
             distanceFromOrigin: 475,
           },
           {
-            stationName: "Multan Vehari Chowk Terminal",
+            stationName: "Multan General Bus Stand",
             stopOrder: 4,
             distanceFromOrigin: 880,
           },
@@ -97,74 +129,55 @@ async function main() {
     include: { stops: { orderBy: { stopOrder: "asc" } } },
   });
 
-  const karachiStop = route.stops.find((s) => s.stopOrder === 1)!;
-  const sukkurStop = route.stops.find((s) => s.stopOrder === 3)!;
-
-  const departureTime = new Date();
-  departureTime.setDate(departureTime.getDate() + 1);
-  // 6:00 PM Pakistan Standard Time
-  const [y, m, d] = [
-    departureTime.getFullYear(),
-    String(departureTime.getMonth() + 1).padStart(2, "0"),
-    String(departureTime.getDate()).padStart(2, "0"),
-  ];
-  const departurePkt = new Date(`${y}-${m}-${d}T18:00:00+05:00`);
-  const arrivalPkt = new Date(departurePkt.getTime() + 18 * 60 * 60 * 1000);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(15, 0, 0, 0);
+  const arrival = new Date(tomorrow);
+  arrival.setHours(arrival.getHours() + 18);
 
   const trip = await prisma.trip.create({
     data: {
       busId: bus.id,
       routeId: route.id,
-      departureTime: departurePkt,
-      arrivalTime: arrivalPkt,
-      basePrice: 4500.0,
+      departureTime: tomorrow,
+      arrivalTime: arrival,
+      basePrice: 4500,
     },
   });
 
-  // Sample booking: Ali Khan, Seat 12, Karachi → Sukkur (partial segment)
-  const booking = await prisma.booking.create({
+  const boarding = route.stops[0]!;
+  const drop = route.stops[route.stops.length - 1]!;
+
+  await prisma.booking.create({
     data: {
       pnr: "PKR-8921A",
       userId: passenger.id,
       tripId: trip.id,
-      totalPrice: 2800.0,
+      totalPrice: 4500,
       paymentStatus: PaymentStatus.PAID,
-      qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?data=PKR-8921A",
+      paymentMethod: "JAZZCASH",
+      contactPhone: passenger.phone,
+      contactEmail: passenger.email,
       tickets: {
-        create: {
-          seatNumber: "12",
-          passengerName: "Ali Khan",
-          passengerGender: Gender.MALE,
-          boardingStopId: karachiStop.id,
-          dropStopId: sukkurStop.id,
-        },
+        create: [
+          {
+            seatNumber: "12",
+            passengerName: "Ali Khan",
+            passengerGender: Gender.MALE,
+            passengerCnic: "42101-1234567-1",
+            boardingStopId: boarding.id,
+            dropStopId: drop.id,
+          },
+        ],
       },
     },
-    include: { tickets: true },
   });
 
-  console.log("Seed complete:");
-  console.log({
-    operator: { id: operator.id, name: operator.name },
-    passenger: { id: passenger.id, name: passenger.name },
-    bus: { id: bus.id, busNumber: bus.busNumber },
-    route: {
-      id: route.id,
-      name: route.name,
-      stops: route.stops.map((s) => `${s.stopOrder}. ${s.stationName}`),
-    },
-    trip: {
-      id: trip.id,
-      departureTime: trip.departureTime.toISOString(),
-      basePricePKR: Number(trip.basePrice),
-    },
-    sampleBooking: {
-      pnr: booking.pnr,
-      seat: booking.tickets[0]?.seatNumber,
-      segment: "Karachi → Sukkur",
-      paymentStatus: booking.paymentStatus,
-    },
-  });
+  console.log("Seed complete.");
+  console.log("Master:  master@safarpk.pk / password123");
+  console.log("Admin:   admin@safarpk.pk / password123");
+  console.log("Partner: operator@daewoo.pk / password123");
+  console.log("Passenger: ali.khan@example.pk / password123");
 }
 
 main()

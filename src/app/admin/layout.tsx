@@ -18,15 +18,14 @@ export default async function AdminLayout({
             Admin access required
           </h1>
           <p className="mt-2 text-sm text-zinc-600">
-            Only users with role <strong>OPERATOR</strong> or{" "}
-            <strong>ADMIN</strong> can open this console. Seed the database to
-            create the Daewoo Express operator account.
+            Sign in with an <strong>ADMIN</strong> or <strong>MASTER</strong>{" "}
+            account at the staff login page.
           </p>
           <Link
-            href="/"
+            href="/staff/login"
             className="mt-6 inline-flex rounded-xl bg-teal-800 px-4 py-2 text-sm text-white"
           >
-            Return home
+            Staff login
           </Link>
         </div>
       </main>
@@ -52,14 +51,11 @@ export default async function AdminLayout({
             <Link className="text-xs text-teal-800" href="/admin/dashboard">
               Overview
             </Link>
-            <Link className="text-xs text-teal-800" href="/admin/routes">
-              Routes
+            <Link className="text-xs text-teal-800" href="/admin/partners">
+              Partners
             </Link>
             <Link className="text-xs text-teal-800" href="/admin/buses">
               Fleet
-            </Link>
-            <Link className="text-xs text-teal-800" href="/admin/manifest">
-              Manifest
             </Link>
           </nav>
         </header>

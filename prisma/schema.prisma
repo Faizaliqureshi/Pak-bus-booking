@@ -19,6 +19,7 @@ enum UserRole {
   OPERATOR
   CONDUCTOR
   ADMIN
+  MASTER
 }
 
 enum PaymentStatus {
@@ -45,13 +46,30 @@ model User {
   name         String
   phone        String?
   role         UserRole @default(PASSENGER)
+  /// Mr | Mrs | Ms | Miss
+  title        String?
+  firstName    String?
+  lastName     String?
+  dateOfBirth  DateTime?
+  country      String?
+  state        String?
+  city         String?
+  passportNumber String?
+  nicNumber      String?
+  /// Who created this staff/partner account (master → admin, admin → partner)
+  createdById  String?
   createdAt    DateTime @default(now())
 
+  createdBy     User?   @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers  User[]  @relation("UserCreatedBy")
   operatedBuses Bus[]      @relation("BusOperator")
   seatLocks     SeatLock[]
   bookings      Booking[]
+  wallet        Wallet?
+  rewards       RewardsAccount?
 
   @@index([role])
+  @@index([createdById])
   @@map("users")
 }
 
@@ -189,4 +207,93 @@ model Ticket {
   @@index([dropStopId])
   @@index([isBoarded])
   @@map("tickets")
+}
+
+/// Bus operator / partner onboarding applications
+model PartnerApplication {
+  id            String   @id @default(cuid())
+  companyName   String
+  contactName   String
+  email         String
+  phone         String
+  city          String
+  fleetSize     Int
+  routesServed  String
+  message       String?
+  status        String   @default("PENDING") // PENDING | REVIEWING | APPROVED | REJECTED
+  createdAt     DateTime @default(now())
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+  @@map("partner_applications")
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Decimal  @default(0)
+  currency  String   @default("PKR")
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id          String   @id @default(cuid())
+  walletId    String
+  /// TOPUP | WITHDRAW | REFUND | ADJUSTMENT
+  type        String
+  /// COMPLETED | PENDING | PROCESSING | FAILED | CANCELLED
+  status      String   @default("COMPLETED")
+  amount      Decimal
+  description String
+  reference   String   @unique
+  bankName    String?
+  iban        String?
+  holderName  String?
+  createdAt   DateTime @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt])
+  @@index([type, status])
+  @@map("wallet_transactions")
+}
+
+model RewardsAccount {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Decimal  @default(0)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions RewardTransaction[]
+
+  @@map("rewards_accounts")
+}
+
+model RewardTransaction {
+  id          String    @id @default(cuid())
+  accountId   String
+  /// EARN | REDEEM | EXPIRE | CANCEL
+  type        String
+  /// PENDING | REWARDED | USED | EXPIRED | CANCELLED
+  status      String
+  amount      Decimal
+  title       String
+  orderId     String?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  account RewardsAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, createdAt])
+  @@index([status])
+  @@map("reward_transactions")
 }

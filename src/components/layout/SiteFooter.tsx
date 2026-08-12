@@ -18,6 +18,7 @@ const LEGAL = [
 
 const SERVICES = [
   { href: "/", label: "Online Bus Tickets" },
+  { href: "/partner/register", label: "Partner Registration" },
   { href: "/pages/umrah-packages", label: "Umrah Packages" },
   { href: "/pages/holiday-packages", label: "Holiday Packages" },
   { href: "/pages/visa", label: "Visa Services" },
@@ -36,7 +37,13 @@ const OPERATORS = [
 export function SiteFooter() {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/conductor")) {
+  if (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/conductor") ||
+    pathname.startsWith("/master") ||
+    pathname.startsWith("/staff") ||
+    pathname.startsWith("/partner/fleet")
+  ) {
     return null;
   }
 
