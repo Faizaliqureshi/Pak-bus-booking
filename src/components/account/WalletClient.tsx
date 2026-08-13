@@ -105,7 +105,7 @@ export function WalletClient() {
             </p>
             <div className="text-right">
               <p className="font-heading text-lg font-bold tracking-tight sm:text-xl">
-                Safar<span className="text-[#f5a623]">PK</span>
+                Ticket<span className="text-[#f5a623]">pass</span>
               </p>
               <button
                 type="button"

@@ -53,7 +53,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
           href="/"
           className="font-heading text-lg font-semibold tracking-tight text-teal-950 print:hidden"
         >
-          SafarPK
+          Ticketpass
         </Link>
         <div className="mt-6">
           <CheckoutForm

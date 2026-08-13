@@ -5,7 +5,7 @@ export default function UmrahPackagesPage() {
   return (
     <StaticPage
       title="Umrah Packages"
-      subtitle="Pilgrimage packages coming soon on SafarPK."
+      subtitle="Pilgrimage packages coming soon on Ticketpass."
     >
       <p>
         Browse curated Umrah packages with flights, hotels, and ground
@@ -15,7 +15,7 @@ export default function UmrahPackagesPage() {
       <p>
         Meanwhile, book your intercity bus to the airport on{" "}
         <Link href="/" className="font-medium text-[#0a2f6b] underline">
-          SafarPK Buses
+          Ticketpass Buses
         </Link>
         .
       </p>

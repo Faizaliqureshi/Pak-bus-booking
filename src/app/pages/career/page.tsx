@@ -11,7 +11,7 @@ export default function CareerPage() {
         Pakistan-first travel marketplace. Open roles will be listed here.
       </p>
       <p>
-        Send your CV to careers@safarpk.pk with the subject line matching the
+        Send your CV to careers@ticketpass.pk with the subject line matching the
         role you want.
       </p>
     </StaticPage>

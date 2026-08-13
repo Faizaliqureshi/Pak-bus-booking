@@ -75,7 +75,7 @@ export async function ensureDemoRewardActivity(accountId: string) {
         type: "EXPIRE",
         status: "EXPIRED",
         amount: 55,
-        title: "Expired Safar Cash",
+        title: "Expired Pass Cash",
         orderId: null,
         createdAt: new Date(now - 40 * day),
       },

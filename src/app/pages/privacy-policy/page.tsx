@@ -12,7 +12,7 @@ export default function PrivacyPage() {
         holds use short-lived Redis locks and are not shared as marketing data.
       </p>
       <p>
-        Contact support@safarpk.pk to request correction of personal booking
+        Contact support@ticketpass.pk to request correction of personal booking
         information associated with your PNR.
       </p>
     </StaticPage>

@@ -371,7 +371,7 @@ export function SearchResultsClient({
                 {deal > 0 ? (
                   <div className="flex items-center gap-2 bg-[#fff4e0] px-4 py-1.5 text-xs font-medium text-[#9a6200]">
                     <Tag className="size-3.5 text-[#f5a623]" />
-                    SafarDeal: Save {formatPkr(deal)}
+                    PassDeal: Save {formatPkr(deal)}
                   </div>
                 ) : null}
 

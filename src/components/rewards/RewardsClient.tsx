@@ -28,12 +28,12 @@ const FILTERS: { id: FilterId; label: string }[] = [
 
 const FAQS = [
   {
-    q: "What is Safar Rewards?",
-    a: "Safar Rewards is Pakistan’s travel loyalty programme. Earn Safar Cash on eligible bus bookings and redeem it on future trips.",
+    q: "What is Ticketpass Rewards?",
+    a: "Ticketpass Rewards is Pakistan’s travel loyalty programme. Earn Pass Cash on eligible bus bookings and redeem it on future trips.",
   },
   {
-    q: "What is Safar Cash?",
-    a: "Safar Cash is reward credit in PKR. It appears in your balance after a trip is completed and can be applied at checkout within the redemption limits.",
+    q: "What is Pass Cash?",
+    a: "Pass Cash is reward credit in PKR. It appears in your balance after a trip is completed and can be applied at checkout within the redemption limits.",
   },
   {
     q: "When do I receive my reward?",
@@ -41,11 +41,11 @@ const FAQS = [
   },
   {
     q: "Do rewards expire?",
-    a: "Yes. Each rewarded amount shows an expiry date. Use Safar Cash before it expires so it stays in your balance.",
+    a: "Yes. Each rewarded amount shows an expiry date. Use Pass Cash before it expires so it stays in your balance.",
   },
   {
-    q: "Can I withdraw Safar Cash?",
-    a: "No. Safar Cash is for travel redemptions only and cannot be withdrawn to a bank account.",
+    q: "Can I withdraw Pass Cash?",
+    a: "No. Pass Cash is for travel redemptions only and cannot be withdrawn to a bank account.",
   },
 ];
 
@@ -129,7 +129,7 @@ export function RewardsClient() {
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-semibold text-[#0a2f6b] sm:text-3xl">
-          Safar Rewards
+          Ticketpass Rewards
         </h1>
         <p className="mt-1 text-sm text-[#0a2f6b]/65">
           Pakistan’s ultimate travel loyalty programme.
@@ -147,7 +147,7 @@ export function RewardsClient() {
           <div className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm text-[#0a2f6b]/60">Safar Cash Balance</p>
+                <p className="text-sm text-[#0a2f6b]/60">Pass Cash Balance</p>
                 <p className="mt-1 font-heading text-3xl font-bold text-[#0a2f6b]">
                   {formatPkr(balance)}
                 </p>
@@ -158,7 +158,7 @@ export function RewardsClient() {
                   </p>
                 ) : (
                   <p className="mt-2 text-xs text-[#0a2f6b]/45">
-                    No Safar Cash expiring soon
+                    No Pass Cash expiring soon
                   </p>
                 )}
               </div>
@@ -175,10 +175,10 @@ export function RewardsClient() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-[#0a2f6b]">
-                  Redeem in the SafarPK app
+                  Redeem in the Ticketpass app
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-[#0a2f6b]/55">
-                  App-only deals and faster Safar Cash redemption.
+                  App-only deals and faster Pass Cash redemption.
                 </p>
               </div>
             </div>
@@ -214,13 +214,13 @@ export function RewardsClient() {
             <div className="mt-4 rounded-xl bg-[#f3f6fb] p-4 text-sm text-[#0a2f6b]/75">
               {guideTab === "earn" ? (
                 <p>
-                  Book buses on SafarPK. After your trip is completed, Safar Cash
+                  Book buses on Ticketpass. After your trip is completed, Pass Cash
                   is added to your rewards wallet based on order type and fare
                   volume.
                 </p>
               ) : (
                 <p>
-                  Apply Safar Cash at checkout on eligible bookings. You can
+                  Apply Pass Cash at checkout on eligible bookings. You can
                   redeem up to Rs 500 on your next trip, subject to offer rules.
                 </p>
               )}
@@ -264,7 +264,7 @@ export function RewardsClient() {
             Your rewards activity
           </h2>
           <p className="mt-1 text-sm text-[#0a2f6b]/60">
-            Get rewarded with Safar Cash on every booking. Redeem up to Rs 500
+            Get rewarded with Pass Cash on every booking. Redeem up to Rs 500
             on your next trip!
           </p>
 
@@ -303,7 +303,7 @@ export function RewardsClient() {
                   <div className="min-w-0">
                     <p className="font-medium text-[#0a2f6b]">{tx.title}</p>
                     <p className="mt-1 text-xs text-[#0a2f6b]/55">
-                      {tx.orderId ? `Order ID ${tx.orderId}` : "Safar Rewards"}{" "}
+                      {tx.orderId ? `Order ID ${tx.orderId}` : "Ticketpass Rewards"}{" "}
                       | {formatShortDate(tx.createdAt)}
                     </p>
                   </div>

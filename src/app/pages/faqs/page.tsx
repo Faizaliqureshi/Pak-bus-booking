@@ -2,7 +2,7 @@ import { StaticPage } from "@/components/layout/StaticPage";
 
 export default function FaqsPage() {
   return (
-    <StaticPage title="FAQs" subtitle="Common questions about booking on SafarPK.">
+    <StaticPage title="FAQs" subtitle="Common questions about booking on Ticketpass.">
       <div className="space-y-5">
         <Faq
           q="How long is my seat held?"

@@ -65,7 +65,7 @@ export function buildQrPayload(input: {
 /** HMAC signature appended for tamper evidence */
 export function signQrPayload(payload: string): string {
   const secret =
-    process.env.TICKET_QR_SECRET || "safarpk-dev-ticket-secret-change-me";
+    process.env.TICKET_QR_SECRET || "ticketpass-dev-ticket-secret-change-me";
   const sig = createHmac("sha256", secret).update(payload).digest("hex").slice(0, 16);
   return `${payload}|SIG:${sig}`;
 }

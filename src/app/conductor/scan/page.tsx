@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ConductorScanClient } from "@/components/conductor/ConductorScanClient";
 
 export const metadata: Metadata = {
-  title: "Conductor Scanner · SafarPK",
+  title: "Conductor Scanner · Ticketpass",
   description: "Scan and verify intercity bus e-tickets.",
 };
 

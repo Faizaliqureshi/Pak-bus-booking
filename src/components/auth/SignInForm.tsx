@@ -85,7 +85,7 @@ export function SignInForm() {
         )}
       </Button>
       <p className="text-center text-sm text-[#0a2f6b]/65">
-        New to SafarPK?{" "}
+        New to Ticketpass?{" "}
         <Link href="/auth/sign-up" className="font-medium text-[#0a2f6b] underline">
           Create an account
         </Link>

@@ -4,10 +4,10 @@ export default function AboutUsPage() {
   return (
     <StaticPage
       title="About Us"
-      subtitle="SafarPK makes intercity bus travel across Pakistan simpler to search, select, and board."
+      subtitle="Ticketpass makes intercity bus travel across Pakistan simpler to search, select, and board."
     >
       <p>
-        SafarPK is built for Pakistani corridors — Karachi to Lahore, Multan,
+        Ticketpass is built for Pakistani corridors — Karachi to Lahore, Multan,
         Islamabad, and beyond. We combine live seat maps, timed holds, and clear
         operator information so you know exactly what you are booking.
       </p>

@@ -41,7 +41,7 @@ export function ETicketView({ ticket }: { ticket: TicketViewData }) {
           href="/"
           className="font-heading text-lg font-semibold tracking-tight text-teal-950"
         >
-          SafarPK
+          Ticketpass
         </a>
         <Button
           type="button"
@@ -164,7 +164,7 @@ export function ETicketView({ ticket }: { ticket: TicketViewData }) {
         </div>
 
         <footer className="border-t border-teal-900/10 px-6 py-4 text-xs text-teal-900/55">
-          SafarPK demo ticket · Contact {ticket.contactPhone ?? "—"} /{" "}
+          Ticketpass demo ticket · Contact {ticket.contactPhone ?? "—"} /{" "}
           {ticket.contactEmail ?? "—"}
         </footer>
       </article>

@@ -15,7 +15,7 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "SafarPK — Intercity Bus Tickets across Pakistan",
+  title: "Ticketpass — Intercity Bus Tickets across Pakistan",
   description:
     "Book intercity bus tickets across Pakistan with live seat selection and secure holds.",
 };

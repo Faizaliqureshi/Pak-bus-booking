@@ -9,7 +9,7 @@ export default function SignInPage() {
             Sign In
           </h1>
           <p className="mt-2 text-sm text-white/70">
-            Access your SafarPK bookings and saved trips.
+            Access your Ticketpass bookings and saved trips.
           </p>
         </div>
       </div>

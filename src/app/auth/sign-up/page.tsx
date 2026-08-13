@@ -9,7 +9,7 @@ export default function SignUpPage() {
             Create Account
           </h1>
           <p className="mt-2 text-sm text-white/70">
-            Book faster with your SafarPK customer profile.
+            Book faster with your Ticketpass customer profile.
           </p>
         </div>
       </div>

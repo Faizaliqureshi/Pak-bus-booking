@@ -38,9 +38,9 @@ async function main() {
 
   const master = await prisma.user.create({
     data: {
-      email: "master@safarpk.pk",
+      email: "master@ticketpass.pk",
       passwordHash: hashPassword("password123"),
-      name: "SafarPK Master",
+      name: "Ticketpass Master",
       phone: "+923001110000",
       role: UserRole.MASTER,
     },
@@ -48,7 +48,7 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
-      email: "admin@safarpk.pk",
+      email: "admin@ticketpass.pk",
       passwordHash: hashPassword("password123"),
       name: "Platform Admin",
       phone: "+923001110001",
@@ -174,8 +174,8 @@ async function main() {
   });
 
   console.log("Seed complete.");
-  console.log("Master:  master@safarpk.pk / password123");
-  console.log("Admin:   admin@safarpk.pk / password123");
+  console.log("Master:  master@ticketpass.pk / password123");
+  console.log("Admin:   admin@ticketpass.pk / password123");
   console.log("Partner: operator@daewoo.pk / password123");
   console.log("Passenger: ali.khan@example.pk / password123");
 }

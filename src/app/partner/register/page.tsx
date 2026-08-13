@@ -9,7 +9,7 @@ export default function PartnerRegisterPage() {
             Partner Registration
           </h1>
           <p className="mt-2 max-w-xl text-sm text-white/70">
-            List your fleet on SafarPK — reach passengers searching Karachi,
+            List your fleet on Ticketpass — reach passengers searching Karachi,
             Lahore, Islamabad, and more.
           </p>
         </div>

@@ -18,7 +18,7 @@ const NAV = [
   { href: "/pages/umrah-packages", label: "Umrah Packages" },
   { href: "/pages/holiday-packages", label: "Holiday Packages" },
   { href: "/pages/visa", label: "Visa" },
-  { href: "/air/sasta-rewards", label: "Safar Rewards" },
+  { href: "/air/sasta-rewards", label: "Ticketpass Rewards" },
   { href: "/partner/register", label: "Partner Registration" },
   { href: "/pages/contact-us", label: "Contact Us" },
   { href: "/pages/about-us", label: "About Us" },
@@ -29,8 +29,8 @@ const NAV = [
 const PROFILE_LINKS = [
   { href: "/account/cancel-booking", label: "Cancel Booking" },
   { href: "/account/edit-profile", label: "Edit Profile" },
-  { href: "/account/wallet", label: "Safar Wallet" },
-  { href: "/air/sasta-rewards", label: "Safar Rewards" },
+  { href: "/account/wallet", label: "Ticketpass Wallet" },
+  { href: "/air/sasta-rewards", label: "Ticketpass Rewards" },
 ] as const;
 
 type SessionUser = {
@@ -171,7 +171,7 @@ export function SiteHeader() {
             href="/"
             className="font-heading text-xl font-bold tracking-tight text-[#0a2f6b] sm:text-2xl"
           >
-            Safar<span className="text-[#f5a623]">PK</span>
+            Ticket<span className="text-[#f5a623]">pass</span>
           </Link>
         </div>
 

@@ -58,7 +58,7 @@ export function PartnerRegisterForm() {
           Application received
         </h2>
         <p className="mt-2 text-sm text-emerald-900/75">
-          Thanks for registering as a SafarPK partner. Our team will review your
+          Thanks for registering as a Ticketpass partner. Our team will review your
           fleet details and contact you shortly.
         </p>
       </div>

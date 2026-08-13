@@ -9,14 +9,14 @@ export {
   generateTempPassword,
 } from "@/lib/password";
 
-const SESSION_COOKIE = "safarpk_session";
+const SESSION_COOKIE = "ticketpass_session";
 const SESSION_DAYS = 14;
 
 function sessionSecret(): string {
   return (
     process.env.SESSION_SECRET ||
     process.env.TICKET_QR_SECRET ||
-    "safarpk-dev-session-secret"
+    "ticketpass-dev-session-secret"
   );
 }
 

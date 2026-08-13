@@ -19,7 +19,7 @@ export default function ContactUsPage() {
         </a>
       </p>
       <p>
-        <strong>Email:</strong> support@safarpk.pk
+        <strong>Email:</strong> support@ticketpass.pk
       </p>
       <p>
         Support is available 24/7 for booking changes, seat holds, and boarding
