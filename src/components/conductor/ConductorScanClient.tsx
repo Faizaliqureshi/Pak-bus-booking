@@ -136,7 +136,7 @@ export function ConductorScanClient() {
     <div className="mx-auto flex min-h-[100svh] w-full max-w-lg flex-col bg-zinc-950 text-zinc-50">
       <header className="px-4 pt-5 pb-3">
         <p className="text-xs tracking-[0.22em] text-emerald-400/80 uppercase">
-          Ticketpass Conductor
+          TicketPass Conductor
         </p>
         <h1 className="mt-1 font-heading text-2xl font-semibold">
           Ticket scanner

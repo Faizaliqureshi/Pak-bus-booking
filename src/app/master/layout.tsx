@@ -36,7 +36,7 @@ export default async function MasterLayout({
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
           <div>
             <p className="font-heading text-xl font-bold">
-              Ticket<span className="text-[#f5a623]">pass</span> Master
+              Ticket<span className="text-[#f5a623]">Pass</span> Master
             </p>
             <p className="text-xs text-[#0a2f6b]/55">
               Signed in as {master.name}

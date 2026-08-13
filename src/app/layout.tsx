@@ -15,9 +15,9 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "Ticketpass — Intercity Bus Tickets across Pakistan",
+  title: "TicketPass — One App for Every Journey",
   description:
-    "Book intercity bus tickets across Pakistan with live seat selection and secure holds.",
+    "Pakistan’s next-generation travel and booking platform. Start with real-time bus tickets, then expand to flights, trains, packages, and visa assistance.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

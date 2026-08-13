@@ -41,7 +41,7 @@ export default async function AdminLayout({
         <header className="flex items-center justify-between border-b border-teal-900/10 bg-white px-4 py-3 md:px-6">
           <div>
             <p className="text-xs tracking-[0.18em] text-teal-800/55 uppercase md:hidden">
-              Ticketpass Admin
+              TicketPass Admin
             </p>
             <p className="text-sm text-teal-900/65">
               Signed in as {admin.name}

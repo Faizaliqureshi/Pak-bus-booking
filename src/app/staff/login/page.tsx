@@ -41,7 +41,7 @@ export default function StaffLoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-[#0a2f6b] px-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl sm:p-8">
         <p className="font-heading text-2xl font-bold text-[#0a2f6b]">
-          Ticket<span className="text-[#f5a623]">pass</span> Staff
+          Ticket<span className="text-[#f5a623]">Pass</span> Staff
         </p>
         <h1 className="mt-2 font-heading text-xl font-semibold text-[#1a2333]">
           Master / Admin / Partner login

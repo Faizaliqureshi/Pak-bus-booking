@@ -22,7 +22,7 @@ const SERVICES = [
   { href: "/pages/umrah-packages", label: "Umrah Packages" },
   { href: "/pages/holiday-packages", label: "Holiday Packages" },
   { href: "/pages/visa", label: "Visa Services" },
-  { href: "/air/sasta-rewards", label: "Ticketpass Rewards" },
+  { href: "/air/sasta-rewards", label: "TicketPass Rewards" },
 ];
 
 const OPERATORS = [
@@ -52,11 +52,11 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-4">
         <div className="md:col-span-1">
           <p className="font-heading text-2xl font-bold tracking-tight">
-            Ticket<span className="text-[#f5a623]">pass</span>
+            Ticket<span className="text-[#f5a623]">Pass</span>
           </p>
           <p className="mt-3 text-sm leading-relaxed text-white/70">
-            Intercity bus tickets across Pakistan — live seats, secure holds,
-            and transparent fares.
+            One App for Every Journey — seamless bookings, real-time seats, and
+            a travel platform built for Pakistan.
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export function SiteFooter() {
 
       <div className="border-t border-white/10">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-4 text-xs text-white/55 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p>© {new Date().getFullYear()} Ticketpass. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} TicketPass. All rights reserved.</p>
           <p>Inspired by Pakistan travel marketplace UX patterns.</p>
         </div>
       </div>

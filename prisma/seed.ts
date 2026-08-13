@@ -40,7 +40,7 @@ async function main() {
     data: {
       email: "master@ticketpass.pk",
       passwordHash: hashPassword("password123"),
-      name: "Ticketpass Master",
+      name: "TicketPass Master",
       phone: "+923001110000",
       role: UserRole.MASTER,
     },

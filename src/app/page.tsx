@@ -45,11 +45,11 @@ export default function HomePage() {
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
           <div className="max-w-3xl animate-[fadeRise_700ms_ease-out]">
             <h1 className="font-heading text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
-              Travel Bookings Made Easy
+              One App for Every Journey
             </h1>
             <p className="mt-3 max-w-xl text-sm text-white/70 sm:text-base">
-              Search intercity buses, lock seats in seconds, and board with a
-              clear e-ticket — built for Pakistan routes.
+              Pakistan’s next-generation travel platform — start with real-time
+              bus bookings, then grow into flights, trains, packages, and more.
             </p>
           </div>
 

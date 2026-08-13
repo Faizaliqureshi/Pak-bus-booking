@@ -49,7 +49,7 @@
 }
 
 :root {
-  /* Ticketpass marketplace — deep blue + amber deal accent */
+  /* TicketPass marketplace — deep blue + amber deal accent */
   --background: oklch(0.97 0.01 250);
   --foreground: oklch(0.28 0.06 255);
   --card: oklch(0.995 0.004 250);

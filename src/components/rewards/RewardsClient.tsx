@@ -28,8 +28,8 @@ const FILTERS: { id: FilterId; label: string }[] = [
 
 const FAQS = [
   {
-    q: "What is Ticketpass Rewards?",
-    a: "Ticketpass Rewards is Pakistan’s travel loyalty programme. Earn Pass Cash on eligible bus bookings and redeem it on future trips.",
+    q: "What is TicketPass Rewards?",
+    a: "TicketPass Rewards is Pakistan’s travel loyalty programme. Earn Pass Cash on eligible bus bookings and redeem it on future trips.",
   },
   {
     q: "What is Pass Cash?",
@@ -129,7 +129,7 @@ export function RewardsClient() {
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <div className="mb-6">
         <h1 className="font-heading text-2xl font-semibold text-[#0a2f6b] sm:text-3xl">
-          Ticketpass Rewards
+          TicketPass Rewards
         </h1>
         <p className="mt-1 text-sm text-[#0a2f6b]/65">
           Pakistan’s ultimate travel loyalty programme.
@@ -175,7 +175,7 @@ export function RewardsClient() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-[#0a2f6b]">
-                  Redeem in the Ticketpass app
+                  Redeem in the TicketPass app
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-[#0a2f6b]/55">
                   App-only deals and faster Pass Cash redemption.
@@ -214,7 +214,7 @@ export function RewardsClient() {
             <div className="mt-4 rounded-xl bg-[#f3f6fb] p-4 text-sm text-[#0a2f6b]/75">
               {guideTab === "earn" ? (
                 <p>
-                  Book buses on Ticketpass. After your trip is completed, Pass Cash
+                  Book buses on TicketPass. After your trip is completed, Pass Cash
                   is added to your rewards wallet based on order type and fare
                   volume.
                 </p>
@@ -303,7 +303,7 @@ export function RewardsClient() {
                   <div className="min-w-0">
                     <p className="font-medium text-[#0a2f6b]">{tx.title}</p>
                     <p className="mt-1 text-xs text-[#0a2f6b]/55">
-                      {tx.orderId ? `Order ID ${tx.orderId}` : "Ticketpass Rewards"}{" "}
+                      {tx.orderId ? `Order ID ${tx.orderId}` : "TicketPass Rewards"}{" "}
                       | {formatShortDate(tx.createdAt)}
                     </p>
                   </div>

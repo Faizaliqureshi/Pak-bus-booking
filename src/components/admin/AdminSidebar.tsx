@@ -34,7 +34,7 @@ export function AdminSidebar({
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-teal-900/10 bg-teal-950 text-teal-50">
       <div className="border-b border-white/10 px-5 py-5">
         <Link href="/admin/dashboard" className="font-heading text-xl font-semibold">
-          Ticketpass Admin
+          TicketPass Admin
         </Link>
         <p className="mt-1 text-xs text-teal-200/70">Fleet & revenue console</p>
       </div>
