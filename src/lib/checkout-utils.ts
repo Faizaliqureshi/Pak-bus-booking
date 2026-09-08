@@ -5,10 +5,21 @@ const CNIC_FORMATTED = /^\d{5}-\d{7}-\d$/;
 const PK_PHONE = /^03\d{9}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export type PaymentMethod = "JAZZCASH" | "EASYPAISA" | "CARD";
+export type PaymentMethod = "JAZZCASH" | "EASYPAISA" | "CARD" | "ONEBILL";
 
 export function stripCnic(value: string): string {
   return value.replace(/\D/g, "").slice(0, 13);
+}
+
+export function stripPhone(value: string): string {
+  return value.replace(/\D/g, "").slice(0, 11);
+}
+
+/** Format mobile as 0300-1234567 */
+export function formatPkPhone(value: string): string {
+  const digits = stripPhone(value);
+  if (digits.length <= 4) return digits;
+  return `${digits.slice(0, 4)}-${digits.slice(4)}`;
 }
 
 /** Format raw digits as 00000-0000000-0 */

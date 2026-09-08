@@ -64,12 +64,34 @@ function buildRows(totalSeats: number, layoutType: string): string[][] {
   for (let i = 0; i < seats.length; i += perRow) {
     rows.push(seats.slice(i, i + perRow));
   }
-  // Last row of 5 for classic 2x2 coaches when remainder fits
-  if (!isSleeper && totalSeats >= 40) {
-    // keep simple grid; rear row already handled by remainder
-  }
   return rows;
 }
+
+/** Side-by-side pair mate (aisle-adjacent seat), e.g. 12A ↔ 12B style pairing. */
+function getPairMate(
+  seatNumber: string,
+  rows: string[][],
+  isSleeper: boolean,
+): string | null {
+  for (const row of rows) {
+    if (isSleeper) {
+      // Sleeper berths are separated by aisle — no forced pair rule.
+      continue;
+    }
+    const pairs: [number, number][] = [
+      [0, 1],
+      [2, 3],
+    ];
+    for (const [a, b] of pairs) {
+      if (row[a] === seatNumber) return row[b] ?? null;
+      if (row[b] === seatNumber) return row[a] ?? null;
+    }
+  }
+  return null;
+}
+
+const FEMALE_ADJACENT_MSG =
+  "Seat reserved for female passenger adjacent to another female traveler.";
 
 function visualStatus(
   seat: ApiSeat | undefined,
@@ -100,7 +122,7 @@ function seatClass(status: VisualSeatStatus): string {
     case "RESERVED_MALE":
       return "cursor-not-allowed border-[#0a2f6b] bg-[#0a2f6b] text-white";
     case "RESERVED_FEMALE":
-      return "cursor-not-allowed border-[#f48fb1] bg-[#f48fb1] text-white";
+      return "cursor-not-allowed border-2 border-[#f8bbd0] bg-[#fce4ec] text-[#ad1457] shadow-[inset_0_0_0_1px_#f48fb1]";
     case "LOCKED_BY_OTHER":
       return "cursor-not-allowed border-amber-400 bg-amber-200 text-amber-950";
     default:
@@ -257,6 +279,24 @@ export function InteractiveSeatMap({
           setBusySeat(null);
           return;
         }
+
+        // Pakistani cultural seating: male cannot take seat beside a female traveller.
+        if (gender === "MALE") {
+          const mate = getPairMate(seatNumber, rows, isSleeper);
+          if (mate) {
+            const mateApi = seatMap.get(mate);
+            const mateSelected = selected.find((s) => s.seatNumber === mate);
+            const mateIsFemaleBooked =
+              mateApi?.status === "BOOKED" && mateApi.gender === "FEMALE";
+            const mateIsFemaleHold = mateSelected?.gender === "FEMALE";
+            if (mateIsFemaleBooked || mateIsFemaleHold) {
+              setError(FEMALE_ADJACENT_MSG);
+              setBusySeat(null);
+              return;
+            }
+          }
+        }
+
         const res = await fetch("/api/seats/lock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -387,9 +427,18 @@ export function InteractiveSeatMap({
             <div className="mx-auto flex w-full max-w-md flex-col items-center gap-3">
               <p className="text-xs tracking-wide text-[#0a2f6b]/45 uppercase">
                 {operatorName ? `${operatorName} · ` : ""}
-                {isSleeper ? "2×1 Sleeper" : "2×2 Executive"}
+                {isSleeper ? "2×1 Sleeper" : "2×2 Executive"} · Lower deck
               </p>
-              <div className="w-full space-y-2">
+
+              <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-[#0a2f6b]/10 bg-white px-3 py-2 text-[11px] font-medium text-[#0a2f6b]/70">
+                <span className="rounded-md bg-[#0a2f6b]/8 px-2 py-1">🚪 Front exit</span>
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#0a2f6b] px-2.5 py-1 text-white">
+                  🛞 Driver cabin
+                </span>
+                <span className="rounded-md bg-[#0a2f6b]/8 px-2 py-1">Door</span>
+              </div>
+
+              <div className="w-full space-y-2 rounded-xl border border-dashed border-[#0a2f6b]/15 bg-white/70 p-3">
                 {rows.map((row, rowIndex) => (
                   <div
                     key={`row-${rowIndex}`}
@@ -405,8 +454,13 @@ export function InteractiveSeatMap({
                         idx === null ? (
                           <div
                             key={`aisle-${rowIndex}-${i}`}
-                            className="h-full min-h-9 w-full rounded-full bg-[#0a2f6b]/5"
-                          />
+                            className="flex h-full min-h-9 w-full items-center justify-center rounded-full bg-[#0a2f6b]/5"
+                            title="Aisle"
+                          >
+                            <span className="text-[8px] tracking-tighter text-[#0a2f6b]/30">
+                              AISLE
+                            </span>
+                          </div>
                         ) : (
                           <SeatButton
                             key={`${rowIndex}-${idx}`}
@@ -426,6 +480,10 @@ export function InteractiveSeatMap({
                   </div>
                 ))}
               </div>
+
+              <div className="flex w-full items-center justify-center rounded-xl border border-[#0a2f6b]/10 bg-white px-3 py-2 text-[11px] font-medium text-[#0a2f6b]/70">
+                🚪 Rear emergency exit
+              </div>
             </div>
           )}
         </div>
@@ -433,7 +491,10 @@ export function InteractiveSeatMap({
 
       <aside className="flex flex-col rounded-2xl border border-[#0a2f6b]/10 bg-white p-4">
         <div className="space-y-2 text-sm text-[#0a2f6b]/75">
-          <Legend swatch="bg-[#f48fb1]" label="Reserved (Female)" />
+          <Legend
+            swatch="border-2 border-[#f8bbd0] bg-[#fce4ec]"
+            label="Reserved (Female)"
+          />
           <Legend swatch="bg-[#0a2f6b]" label="Reserved (Male)" />
           <Legend
             swatch="bg-[#f48fb1]"

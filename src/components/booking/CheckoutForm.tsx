@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Building2,
   CreditCard,
   Loader2,
   Smartphone,
@@ -23,6 +24,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import {
   formatCnic,
+  formatPkPhone,
   isValidCnic,
   isValidEmail,
   isValidPkPhone,
@@ -68,6 +70,38 @@ function formatCountdown(ms: number): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+const PAYMENT_TABS: {
+  id: PaymentMethod;
+  title: string;
+  subtitle: string;
+  icon: ReactNode;
+}[] = [
+  {
+    id: "JAZZCASH",
+    title: "JazzCash",
+    subtitle: "Mobile account + OTP",
+    icon: <Smartphone className="size-4" />,
+  },
+  {
+    id: "EASYPAISA",
+    title: "EasyPaisa",
+    subtitle: "Push payment prompt",
+    icon: <Wallet className="size-4" />,
+  },
+  {
+    id: "CARD",
+    title: "Debit / Credit Card",
+    subtitle: "Visa · Mastercard",
+    icon: <CreditCard className="size-4" />,
+  },
+  {
+    id: "ONEBILL",
+    title: "1BILL / Counter",
+    subtitle: "Pay at retailer",
+    icon: <Building2 className="size-4" />,
+  },
+];
+
 export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
   const router = useRouter();
   const [now, setNow] = useState(() => Date.now());
@@ -75,8 +109,9 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
   const [error, setError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] =
     useState<PaymentMethod>("JAZZCASH");
+  const [walletAccount, setWalletAccount] = useState("");
   const [contactPhone, setContactPhone] = useState(
-    booking.contactPhone ?? "03001234567",
+    formatPkPhone(booking.contactPhone ?? "03001234567"),
   );
   const [contactEmail, setContactEmail] = useState(
     booking.contactEmail ?? "ali.khan@example.pk",
@@ -136,11 +171,19 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
     }
 
     if (!isValidPkPhone(contactPhone)) {
-      setError("Enter a valid mobile number (e.g. 03001234567).");
+      setError("Enter a valid mobile number (e.g. 0300-1234567).");
       return;
     }
     if (!isValidEmail(contactEmail)) {
       setError("Enter a valid email address.");
+      return;
+    }
+
+    if (
+      (paymentMethod === "JAZZCASH" || paymentMethod === "EASYPAISA") &&
+      !isValidPkPhone(walletAccount || contactPhone)
+    ) {
+      setError("Enter a valid JazzCash / EasyPaisa mobile account number.");
       return;
     }
 
@@ -151,7 +194,7 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bookingId: booking.id,
-          contactPhone,
+          contactPhone: contactPhone.replace(/[\s-]/g, ""),
           contactEmail,
           paymentMethod,
           passengers: passengers.map((p) => ({
@@ -177,16 +220,16 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
   return (
     <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
       <div className="space-y-6">
-        <section className="rounded-2xl border border-teal-900/10 bg-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs tracking-[0.18em] text-teal-800/60 uppercase">
+              <p className="text-xs tracking-[0.18em] text-[#0a2f6b]/55 uppercase">
                 Booking draft
               </p>
-              <h1 className="mt-1 font-heading text-2xl font-semibold text-teal-950">
+              <h1 className="mt-1 font-heading text-2xl font-semibold text-[#0a2f6b]">
                 Passenger details
               </h1>
-              <p className="mt-1 text-sm text-teal-900/65">
+              <p className="mt-1 text-sm text-[#0a2f6b]/65">
                 PNR reserved: <strong>{booking.pnr}</strong>
               </p>
             </div>
@@ -216,39 +259,39 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
 
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-teal-900/55">Operator</dt>
-              <dd className="font-medium text-teal-950">
+              <dt className="text-[#0a2f6b]/55">Operator</dt>
+              <dd className="font-medium text-[#0a2f6b]">
                 {booking.trip.operatorName}
               </dd>
             </div>
             <div>
-              <dt className="text-teal-900/55">Bus</dt>
-              <dd className="font-medium text-teal-950">
+              <dt className="text-[#0a2f6b]/55">Bus</dt>
+              <dd className="font-medium text-[#0a2f6b]">
                 {booking.trip.busNumber}
               </dd>
             </div>
             <div>
-              <dt className="text-teal-900/55">Route</dt>
-              <dd className="font-medium text-teal-950">
+              <dt className="text-[#0a2f6b]/55">Route</dt>
+              <dd className="font-medium text-[#0a2f6b]">
                 {booking.trip.originCity} → {booking.trip.destinationCity}
               </dd>
             </div>
             <div>
-              <dt className="text-teal-900/55">Seats</dt>
-              <dd className="font-medium text-teal-950">
+              <dt className="text-[#0a2f6b]/55">Seats</dt>
+              <dd className="font-medium text-[#0a2f6b]">
                 {booking.heldSeats.join(", ")}
               </dd>
             </div>
             <div>
-              <dt className="text-teal-900/55">Departure</dt>
-              <dd className="font-medium text-teal-950">
+              <dt className="text-[#0a2f6b]/55">Departure</dt>
+              <dd className="font-medium text-[#0a2f6b]">
                 {formatTime(booking.trip.departureTime)} ·{" "}
                 {booking.boardingStop?.name}
               </dd>
             </div>
             <div>
-              <dt className="text-teal-900/55">Arrival</dt>
-              <dd className="font-medium text-teal-950">
+              <dt className="text-[#0a2f6b]/55">Arrival</dt>
+              <dd className="font-medium text-[#0a2f6b]">
                 {formatTime(booking.trip.arrivalTime)} ·{" "}
                 {booking.dropStop?.name}
               </dd>
@@ -259,9 +302,9 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
         {passengers.map((passenger, index) => (
           <section
             key={passenger.seatNumber}
-            className="rounded-2xl border border-teal-900/10 bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-5 shadow-sm"
           >
-            <h2 className="font-heading text-lg font-semibold text-teal-950">
+            <h2 className="font-heading text-lg font-semibold text-[#0a2f6b]">
               Passenger {index + 1} · Seat {passenger.seatNumber}
             </h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -321,11 +364,11 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
           </section>
         ))}
 
-        <section className="rounded-2xl border border-teal-900/10 bg-white p-5 shadow-sm">
-          <h2 className="font-heading text-lg font-semibold text-teal-950">
+        <section className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-5 shadow-sm">
+          <h2 className="font-heading text-lg font-semibold text-[#0a2f6b]">
             Primary contact
           </h2>
-          <p className="mt-1 text-sm text-teal-900/65">
+          <p className="mt-1 text-sm text-[#0a2f6b]/65">
             E-ticket will be sent to this phone/email.
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -334,11 +377,10 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
               <Input
                 id="phone"
                 value={contactPhone}
-                onChange={(e) =>
-                  setContactPhone(e.target.value.replace(/[^\d]/g, "").slice(0, 11))
-                }
-                placeholder="03001234567"
+                onChange={(e) => setContactPhone(formatPkPhone(e.target.value))}
+                placeholder="0300-1234567"
                 className="h-11 font-mono"
+                inputMode="numeric"
                 required
               />
             </div>
@@ -359,46 +401,116 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
       </div>
 
       <aside className="h-fit space-y-4 lg:sticky lg:top-6">
-        <section className="rounded-2xl border border-teal-900/10 bg-white p-5 shadow-sm">
-          <h2 className="font-heading text-lg font-semibold text-teal-950">
-            Payment method
+        <section className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-5 shadow-sm">
+          <h2 className="font-heading text-lg font-semibold text-[#0a2f6b]">
+            Local payment
           </h2>
-          <div className="mt-4 space-y-2">
-            <PaymentOption
-              selected={paymentMethod === "JAZZCASH"}
-              onSelect={() => setPaymentMethod("JAZZCASH")}
-              icon={<Smartphone className="size-4" />}
-              title="JazzCash"
-              subtitle="Mobile wallet"
-            />
-            <PaymentOption
-              selected={paymentMethod === "EASYPAISA"}
-              onSelect={() => setPaymentMethod("EASYPAISA")}
-              icon={<Wallet className="size-4" />}
-              title="EasyPaisa"
-              subtitle="Mobile wallet"
-            />
-            <PaymentOption
-              selected={paymentMethod === "CARD"}
-              onSelect={() => setPaymentMethod("CARD")}
-              icon={<CreditCard className="size-4" />}
-              title="Credit / Debit Card"
-              subtitle="Stripe placeholder"
-            />
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {PAYMENT_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setPaymentMethod(tab.id)}
+                className={cn(
+                  "flex flex-col items-start gap-1 rounded-xl border px-3 py-3 text-left transition",
+                  paymentMethod === tab.id
+                    ? "border-[#FF5A1F] bg-[#fff4ef] text-[#0a2f6b]"
+                    : "border-[#0a2f6b]/10 bg-[#f8fafc] text-[#0a2f6b] hover:bg-[#eef2f8]",
+                )}
+              >
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold">
+                  {tab.icon}
+                  {tab.title}
+                </span>
+                <span className="text-[11px] text-[#0a2f6b]/55">{tab.subtitle}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-[#0a2f6b]/10 bg-[#f8fafc] p-4 text-sm text-[#0a2f6b]/75">
+            {paymentMethod === "JAZZCASH" ? (
+              <div className="space-y-3">
+                <Label htmlFor="jazz-account">JazzCash mobile account</Label>
+                <Input
+                  id="jazz-account"
+                  value={walletAccount}
+                  onChange={(e) => setWalletAccount(formatPkPhone(e.target.value))}
+                  placeholder="0300-1234567"
+                  className="h-11 font-mono bg-white"
+                  inputMode="numeric"
+                />
+                <p className="text-xs leading-relaxed">
+                  You will receive a JazzCash OTP / payment request. Approve it
+                  in the JazzCash app to confirm this TicketPass booking.
+                </p>
+              </div>
+            ) : null}
+
+            {paymentMethod === "EASYPAISA" ? (
+              <div className="space-y-3">
+                <Label htmlFor="ep-account">EasyPaisa mobile account</Label>
+                <Input
+                  id="ep-account"
+                  value={walletAccount}
+                  onChange={(e) => setWalletAccount(formatPkPhone(e.target.value))}
+                  placeholder="0300-1234567"
+                  className="h-11 font-mono bg-white"
+                  inputMode="numeric"
+                />
+                <p className="text-xs leading-relaxed">
+                  EasyPaisa will send a push prompt to your phone. Open the app
+                  and accept the payment to complete checkout.
+                </p>
+              </div>
+            ) : null}
+
+            {paymentMethod === "CARD" ? (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-md bg-[#1a1f71] px-2.5 py-1 text-[11px] font-bold text-white">
+                    VISA
+                  </span>
+                  <span className="rounded-md bg-[#eb001b] px-2.5 py-1 text-[11px] font-bold text-white">
+                    Mastercard
+                  </span>
+                </div>
+                <p className="text-xs leading-relaxed">
+                  Debit and credit cards are accepted. Card capture is simulated
+                  in this demo — your booking will confirm after you continue.
+                </p>
+              </div>
+            ) : null}
+
+            {paymentMethod === "ONEBILL" ? (
+              <div className="space-y-2 text-xs leading-relaxed">
+                <p className="font-semibold text-[#0a2f6b]">
+                  1BILL voucher / Pay at Counter
+                </p>
+                <p>
+                  After confirmation you will receive a 1BILL consumer number.
+                  Pay at any JazzCash / EasyPaisa retailer, bank branch, or
+                  partner counter before your seat hold expires.
+                </p>
+                <p>
+                  Keep the voucher SMS with you — conductors may ask for payment
+                  proof with your PNR.
+                </p>
+              </div>
+            ) : null}
           </div>
 
           <Separator className="my-4" />
 
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-xs tracking-wide text-teal-900/55 uppercase">
+              <p className="text-xs tracking-wide text-[#0a2f6b]/55 uppercase">
                 Total due
               </p>
-              <p className="font-heading text-3xl font-semibold text-teal-800">
+              <p className="font-heading text-3xl font-semibold text-[#0a2f6b]">
                 {formatPkr(booking.totalPrice)}
               </p>
             </div>
-            <p className="text-xs text-teal-900/55">
+            <p className="text-xs text-[#0a2f6b]/55">
               {booking.heldSeats.length} × {formatPkr(booking.trip.basePrice)}
             </p>
           </div>
@@ -412,7 +524,7 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
           <Button
             type="submit"
             disabled={submitting || expired}
-            className="mt-4 h-11 w-full bg-teal-800 text-white hover:bg-teal-700"
+            className="mt-4 h-11 w-full bg-[#FF5A1F] text-white hover:bg-[#e84e16]"
           >
             {submitting ? (
               <>
@@ -435,58 +547,5 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
         </section>
       </aside>
     </form>
-  );
-}
-
-function PaymentOption({
-  selected,
-  onSelect,
-  icon,
-  title,
-  subtitle,
-}: {
-  selected: boolean;
-  onSelect: () => void;
-  icon: ReactNode;
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        "flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition",
-        selected
-          ? "border-teal-800 bg-teal-800 text-white"
-          : "border-teal-900/10 bg-teal-50/40 text-teal-950 hover:bg-teal-50",
-      )}
-    >
-      <span
-        className={cn(
-          "inline-flex size-9 items-center justify-center rounded-lg",
-          selected ? "bg-white/15" : "bg-white",
-        )}
-      >
-        {icon}
-      </span>
-      <span>
-        <span className="block text-sm font-medium">{title}</span>
-        <span
-          className={cn(
-            "block text-xs",
-            selected ? "text-teal-50/75" : "text-teal-900/55",
-          )}
-        >
-          {subtitle}
-        </span>
-      </span>
-      <span
-        className={cn(
-          "ml-auto size-4 rounded-full border-2",
-          selected ? "border-white bg-white" : "border-teal-800/30",
-        )}
-      />
-    </button>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRightLeft, BusFront, CalendarDays, MapPin } from "lucide-react";
+import { ArrowLeftRight, BusFront, CalendarDays, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +16,7 @@ import {
 import {
   PAKISTAN_CITIES,
   defaultTravelDate,
+  toDateInputValue,
 } from "@/lib/booking-utils";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +26,16 @@ interface SearchWidgetProps {
   defaultDestination?: string;
   defaultDate?: string;
   compact?: boolean;
+}
+
+function todayIso(): string {
+  return toDateInputValue(new Date());
+}
+
+function tomorrowIso(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return toDateInputValue(d);
 }
 
 export function SearchWidget({
@@ -40,13 +51,9 @@ export function SearchWidget({
   const [date, setDate] = useState(defaultDate ?? defaultTravelDate());
   const [error, setError] = useState<string | null>(null);
 
-  const minDate = useMemo(() => {
-    const today = new Date();
-    const y = today.getFullYear();
-    const m = String(today.getMonth() + 1).padStart(2, "0");
-    const d = String(today.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }, []);
+  const minDate = useMemo(() => todayIso(), []);
+  const today = minDate;
+  const tomorrow = useMemo(() => tomorrowIso(), []);
 
   function swapCities() {
     setOrigin(destination);
@@ -84,7 +91,7 @@ export function SearchWidget({
       <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_1fr_auto] md:items-end">
         <div className="space-y-1.5">
           <Label htmlFor="origin" className="text-xs font-medium text-[#0a2f6b]/65">
-            Leaving From
+            From City
           </Label>
           <div className="relative">
             <MapPin className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-[#0a2f6b]/45" />
@@ -113,9 +120,11 @@ export function SearchWidget({
             size="icon"
             onClick={swapCities}
             className="size-12 shrink-0 rounded-full border-white bg-white text-[#0a2f6b] shadow-sm hover:bg-[#f5f8fc]"
-            aria-label="Swap cities"
+            aria-label="Swap from and to cities"
+            title="Swap route"
           >
-            <ArrowRightLeft className="size-4" />
+            <ArrowLeftRight className="size-4" />
+            <span className="sr-only">⇄</span>
           </Button>
         </div>
 
@@ -124,7 +133,7 @@ export function SearchWidget({
             htmlFor="destination"
             className="text-xs font-medium text-[#0a2f6b]/65"
           >
-            Going To
+            To City
           </Label>
           <div className="relative">
             <BusFront className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-[#0a2f6b]/45" />
@@ -169,10 +178,38 @@ export function SearchWidget({
         <Button
           type="submit"
           size="lg"
-          className="h-12 bg-[#0a2f6b] px-6 text-white hover:bg-[#08305f] md:min-w-[150px]"
+          className="h-12 bg-[#FF5A1F] px-6 text-white hover:bg-[#e84e16] md:min-w-[150px]"
         >
           Search Buses
         </Button>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs text-[#0a2f6b]/55">Quick date</span>
+        <button
+          type="button"
+          onClick={() => setDate(today)}
+          className={cn(
+            "rounded-full px-3 py-1 text-xs font-semibold transition",
+            date === today
+              ? "bg-[#0a2f6b] text-white"
+              : "bg-white text-[#0a2f6b] hover:bg-[#e8eef8]",
+          )}
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          onClick={() => setDate(tomorrow)}
+          className={cn(
+            "rounded-full px-3 py-1 text-xs font-semibold transition",
+            date === tomorrow
+              ? "bg-[#0a2f6b] text-white"
+              : "bg-white text-[#0a2f6b] hover:bg-[#e8eef8]",
+          )}
+        >
+          Tomorrow
+        </button>
       </div>
 
       {error ? (

@@ -1,11 +1,14 @@
 export const PAKISTAN_CITIES = [
   "Karachi",
-  "Hyderabad",
-  "Sukkur",
-  "Multan",
   "Lahore",
-  "Rawalpindi/Islamabad",
+  "Islamabad/Rawalpindi",
+  "Multan",
+  "Faisalabad",
   "Peshawar",
+  "Sukkur",
+  "Hyderabad",
+  "Abbottabad",
+  "Swat",
   "Quetta",
 ] as const;
 
@@ -13,8 +16,11 @@ export type PakistanCity = (typeof PAKISTAN_CITIES)[number];
 
 /** Normalize UI city labels to DB originCity / destinationCity values */
 export function normalizeCityForSearch(city: string): string[] {
-  if (city === "Rawalpindi/Islamabad") {
-    return ["Rawalpindi", "Islamabad", "Rawalpindi/Islamabad"];
+  if (city === "Islamabad/Rawalpindi" || city === "Rawalpindi/Islamabad") {
+    return ["Rawalpindi", "Islamabad", "Rawalpindi/Islamabad", "Islamabad/Rawalpindi"];
+  }
+  if (city === "Swat") {
+    return ["Swat", "Mingora", "Saidu Sharif"];
   }
   return [city];
 }

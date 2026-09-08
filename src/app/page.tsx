@@ -1,32 +1,24 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
-  BusFront,
-  Gift,
   Headphones,
-  IdCard,
   MapPinned,
   ShieldCheck,
   Sparkles,
-  Trees,
   UsersRound,
 } from "lucide-react";
 import { SearchWidget } from "@/components/booking/SearchWidget";
-import { cn } from "@/lib/utils";
-
-const SERVICES = [
-  { href: "/", label: "Buses", icon: BusFront, active: true },
-  { href: "/pages/umrah-packages", label: "Umrah", icon: Sparkles },
-  { href: "/pages/holiday-packages", label: "Packages", icon: Trees },
-  { href: "/pages/visa", label: "Visa", icon: IdCard },
-  { href: "/air/sasta-rewards", label: "Rewards", icon: Gift },
-] as const;
+import {
+  HELPLINE_DISPLAY,
+  HELPLINE_TEL,
+  ServiceTabs,
+} from "@/components/layout/ServiceTabs";
 
 const ROUTES = [
   { from: "Karachi", to: "Lahore", fromPrice: 4000 },
-  { from: "Lahore", to: "Islamabad", fromPrice: 2200 },
+  { from: "Lahore", to: "Islamabad/Rawalpindi", fromPrice: 2200 },
   { from: "Karachi", to: "Multan", fromPrice: 3500 },
-  { from: "Islamabad", to: "Peshawar", fromPrice: 1800 },
+  { from: "Islamabad/Rawalpindi", to: "Peshawar", fromPrice: 1800 },
 ];
 
 export default function HomePage() {
@@ -35,46 +27,32 @@ export default function HomePage() {
       <section className="relative isolate overflow-hidden bg-[#0a2f6b]">
         <div
           aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_15%_0%,rgba(245,166,35,0.22),transparent_42%),radial-gradient(ellipse_at_90%_20%,rgba(255,255,255,0.12),transparent_45%)]"
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_15%_0%,rgba(255,90,31,0.22),transparent_42%),radial-gradient(ellipse_at_90%_20%,rgba(255,255,255,0.12),transparent_45%)]"
         />
         <div
           aria-hidden
           className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#f3f6fb]"
         />
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-8 pt-8 sm:px-6 sm:pt-12">
           <div className="max-w-3xl animate-[fadeRise_700ms_ease-out]">
-            <h1 className="font-heading text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            <p className="font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+              Ticket<span className="text-[#f5a623]">Pass</span>
+            </p>
+            <h1 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
               One App for Every Journey
             </h1>
             <p className="mt-3 max-w-xl text-sm text-white/70 sm:text-base">
               Pakistan’s next-generation travel platform — start with real-time
-              bus bookings, then grow into flights, trains, packages, and more.
+              bus bookings, then grow into flights, hotels, packages, and more.
             </p>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-2 animate-[fadeRise_800ms_ease-out]">
-            {SERVICES.map((service) => {
-              const Icon = service.icon;
-              return (
-                <Link
-                  key={service.label}
-                  href={service.href}
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition",
-                    "active" in service && service.active
-                      ? "bg-white text-[#0a2f6b] shadow-sm"
-                      : "bg-[#08305f] text-white/90 hover:bg-[#0d3a72]",
-                  )}
-                >
-                  <Icon className="size-4" />
-                  {service.label}
-                </Link>
-              );
-            })}
+          <div className="mt-8 border-b border-white/15 animate-[fadeRise_800ms_ease-out]">
+            <ServiceTabs variant="hero" />
           </div>
 
-          <div className="relative z-10 mt-6 animate-[fadeRise_900ms_ease-out]">
+          <div className="relative z-10 mt-5 animate-[fadeRise_900ms_ease-out]">
             <SearchWidget />
           </div>
         </div>
@@ -96,10 +74,10 @@ export default function HomePage() {
             </div>
           </div>
           <a
-            href="tel:03123137349"
+            href={`tel:${HELPLINE_TEL}`}
             className="text-sm font-medium text-[#0a2f6b] underline-offset-2 hover:underline"
           >
-            Call 0312 3137349
+            Call {HELPLINE_DISPLAY}
           </a>
         </div>
       </section>

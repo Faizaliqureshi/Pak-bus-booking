@@ -35,6 +35,7 @@ const PAYMENT_METHODS = new Set<PaymentMethod>([
   "JAZZCASH",
   "EASYPAISA",
   "CARD",
+  "ONEBILL",
 ]);
 
 function isNonEmptyString(value: unknown): value is string {
