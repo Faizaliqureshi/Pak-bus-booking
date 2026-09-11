@@ -59,11 +59,22 @@ async function main() {
 
   const operator = await prisma.user.create({
     data: {
-      email: "operator@daewoo.pk",
+      email: "partner@ticketpass.pk",
       passwordHash: hashPassword("password123"),
-      name: "Daewoo Express Operator",
-      phone: "+923001112233",
+      name: "Daewoo Partner Ops",
+      phone: "+923001110002",
       role: UserRole.OPERATOR,
+      createdById: admin.id,
+    },
+  });
+
+  const conductor = await prisma.user.create({
+    data: {
+      email: "conductor@ticketpass.pk",
+      passwordHash: hashPassword("password123"),
+      name: "Coach Conductor",
+      phone: "+923001110003",
+      role: UserRole.CONDUCTOR,
       createdById: admin.id,
     },
   });
@@ -78,7 +89,7 @@ async function main() {
     },
   });
 
-  // silence unused
+  void conductor;
   void passenger;
 
   const bus = await prisma.bus.create({
@@ -174,10 +185,11 @@ async function main() {
   });
 
   console.log("Seed complete.");
-  console.log("Master:  master@ticketpass.pk / password123");
-  console.log("Admin:   admin@ticketpass.pk / password123");
-  console.log("Partner: operator@daewoo.pk / password123");
-  console.log("Passenger: ali.khan@example.pk / password123");
+  console.log("Master:     master@ticketpass.pk / password123  → /master");
+  console.log("Admin:      admin@ticketpass.pk / password123   → /admin");
+  console.log("Partner:    partner@ticketpass.pk / password123 → /partner/fleet");
+  console.log("Conductor:  conductor@ticketpass.pk / password123 → /conductor/scan");
+  console.log("Passenger:  ali.khan@example.pk / password123 → /auth/sign-in");
 }
 
 main()

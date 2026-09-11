@@ -8,6 +8,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+const DEMO_STAFF = [
+  {
+    role: "Master",
+    portal: "/master",
+    email: "master@ticketpass.pk",
+    password: "password123",
+  },
+  {
+    role: "Admin",
+    portal: "/admin/dashboard",
+    email: "admin@ticketpass.pk",
+    password: "password123",
+  },
+  {
+    role: "Partner",
+    portal: "/partner/fleet",
+    email: "partner@ticketpass.pk",
+    password: "password123",
+  },
+  {
+    role: "Conductor",
+    portal: "/conductor/scan",
+    email: "conductor@ticketpass.pk",
+    password: "password123",
+  },
+] as const;
+
 export default function StaffLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -38,20 +65,20 @@ export default function StaffLoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#0a2f6b] px-4">
+    <main className="flex min-h-screen items-center justify-center bg-[#0a2f6b] px-4 py-10">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl sm:p-8">
         <p className="font-heading text-2xl font-bold text-[#0a2f6b]">
           Ticket<span className="text-[#f5a623]">Pass</span> Staff
         </p>
         <h1 className="mt-2 font-heading text-xl font-semibold text-[#1a2333]">
-          Master / Admin / Partner login
+          Staff portal login
         </h1>
         <p className="mt-1 text-sm text-[#0a2f6b]/60">
-          Customers should use the public{" "}
+          Master, Admin, Partner, and Conductor. Customers use{" "}
           <Link href="/auth/sign-in" className="underline">
             Sign In
-          </Link>{" "}
-          page.
+          </Link>
+          .
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -95,9 +122,37 @@ export default function StaffLoginPage() {
           </Button>
         </form>
 
-        <div className="mt-6 rounded-xl bg-[#f3f6fb] p-3 text-xs text-[#0a2f6b]/70">
-          <p className="font-semibold">Demo master</p>
-          <p>master@ticketpass.pk / password123</p>
+        <div className="mt-6 space-y-2">
+          <p className="text-xs font-semibold tracking-wide text-[#0a2f6b]/55 uppercase">
+            Demo accounts (tap to fill)
+          </p>
+          {DEMO_STAFF.map((account) => (
+            <button
+              key={account.email}
+              type="button"
+              onClick={() => {
+                setEmail(account.email);
+                setPassword(account.password);
+                setError(null);
+              }}
+              className="flex w-full items-start justify-between gap-3 rounded-xl border border-[#0a2f6b]/10 bg-[#f3f6fb] px-3 py-2.5 text-left transition hover:border-[#0a2f6b]/25 hover:bg-[#e8eef8]"
+            >
+              <span>
+                <span className="block text-sm font-semibold text-[#0a2f6b]">
+                  {account.role}
+                </span>
+                <span className="block font-mono text-[11px] text-[#0a2f6b]/70">
+                  {account.email}
+                </span>
+              </span>
+              <span className="shrink-0 text-[10px] font-medium text-[#0a2f6b]/45">
+                {account.portal}
+              </span>
+            </button>
+          ))}
+          <p className="text-center text-[11px] text-[#0a2f6b]/45">
+            Password for all demos: <strong>password123</strong>
+          </p>
         </div>
       </div>
     </main>

@@ -114,6 +114,7 @@ export function staffHomeForRole(role: string): string {
   if (role === "MASTER") return "/master";
   if (role === "ADMIN") return "/admin/dashboard";
   if (role === "OPERATOR") return "/partner/fleet";
+  if (role === "CONDUCTOR") return "/conductor/scan";
   return "/";
 }
 

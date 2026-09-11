@@ -35,12 +35,14 @@ export async function POST(request: Request) {
     if (
       user.role !== "MASTER" &&
       user.role !== "ADMIN" &&
-      user.role !== "OPERATOR"
+      user.role !== "OPERATOR" &&
+      user.role !== "CONDUCTOR"
     ) {
       return NextResponse.json(
         {
           success: false,
-          message: "This login is for master, admin, and partner accounts.",
+          message:
+            "This login is for master, admin, partner, and conductor accounts.",
         },
         { status: 403 },
       );

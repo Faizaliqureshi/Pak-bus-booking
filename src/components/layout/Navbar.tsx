@@ -22,7 +22,7 @@ const NAV = [
   { href: "/about-us", label: "About Us" },
   { href: "/contact-us", label: "Contact Us" },
   { href: "/faqs", label: "FAQs" },
-  { href: "/staff/login", label: "Staff / Partner Login" },
+  { href: "/staff/login", label: "Staff Portal Login" },
 ];
 
 const PROFILE_LINKS = [
