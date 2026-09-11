@@ -75,7 +75,7 @@ async function main() {
       name: "Coach Conductor",
       phone: "+923001110003",
       role: UserRole.CONDUCTOR,
-      createdById: admin.id,
+      createdById: operator.id,
     },
   });
 

@@ -17,7 +17,7 @@ export default async function MasterLayout({
             Master access required
           </h1>
           <p className="mt-2 text-sm text-[#0a2f6b]/65">
-            Sign in with a MASTER account to create platform admins.
+            Sign in with a MASTER account for the platform control centre.
           </p>
           <Link
             href="/staff/login"
@@ -33,26 +33,32 @@ export default async function MasterLayout({
   return (
     <div className="min-h-screen bg-[#f3f6fb] text-[#0a2f6b]">
       <header className="border-b border-[#0a2f6b]/10 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <div>
             <p className="font-heading text-xl font-bold">
               Ticket<span className="text-[#f5a623]">Pass</span> Master
             </p>
             <p className="text-xs text-[#0a2f6b]/55">
-              Signed in as {master.name}
+              Signed in as {master.name} · platform owner
             </p>
           </div>
-          <div className="flex gap-3 text-sm">
+          <nav className="flex flex-wrap gap-3 text-sm font-medium">
+            <Link href="/master" className="hover:underline">
+              Control centre
+            </Link>
             <Link href="/admin/dashboard" className="hover:underline">
               Admin console
+            </Link>
+            <Link href="/staff/login" className="hover:underline">
+              Switch account
             </Link>
             <Link href="/" className="hover:underline">
               Site
             </Link>
-          </div>
+          </nav>
         </div>
       </header>
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">{children}</div>
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
     </div>
   );
 }
