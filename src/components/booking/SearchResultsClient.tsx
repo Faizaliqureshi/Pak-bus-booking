@@ -9,9 +9,11 @@ import {
   Loader2,
   Monitor,
   Moon,
+  Sunrise,
   Sun,
   Sunset,
   Tag,
+  X,
 } from "lucide-react";
 import { InteractiveSeatMap } from "@/components/booking/InteractiveSeatMap";
 import { SearchWidget } from "@/components/booking/SearchWidget";
@@ -20,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import {
+  busTypeCategory,
   busTypeLabel,
   formatDuration,
   formatPkr,
@@ -51,8 +54,23 @@ export interface TripSearchResult {
   dropStop: { id: string; name: string; order: number } | null;
 }
 
-type TimeBucket = "morning" | "afternoon" | "night";
-type BusTypeFilter = "2x2" | "2x1";
+type TimeBucket = "earlyMorning" | "morning" | "afternoon" | "night";
+type BusTypeFilter = "executive" | "business" | "sleeper";
+type SortOption = "recommended" | "cheapest" | "earliest";
+
+const BUS_SERVICES = [
+  "Kainat Travels",
+  "Daewoo Express",
+  "Warraich Express",
+  "Faisal Movers",
+  "KCS",
+  "Umair Movers",
+  "Waheed Movers",
+  "DMC Larkana",
+  "Khan Movers",
+  "Geo Farhan",
+  "Royal City",
+] as const;
 
 function hourInPkt(iso: string): number {
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -65,16 +83,28 @@ function hourInPkt(iso: string): number {
 
 function tripBucket(iso: string): TimeBucket {
   const hour = hourInPkt(iso);
-  if (hour >= 5 && hour < 12) return "morning";
-  if (hour >= 12 && hour < 18) return "afternoon";
+  // 12:00 AM – 05:59 AM
+  if (hour < 6) return "earlyMorning";
+  // 06:00 AM – 11:59 AM
+  if (hour < 12) return "morning";
+  // 12:00 PM – 07:59 PM
+  if (hour < 20) return "afternoon";
+  // 08:00 PM – 11:59 PM
   return "night";
 }
 
 function matchesBusType(layoutType: string, filter: BusTypeFilter): boolean {
-  if (filter === "2x1") {
-    return layoutType.includes("2x1") || layoutType.includes("SLEEPER");
-  }
-  return !layoutType.includes("2x1") && !layoutType.includes("SLEEPER");
+  return busTypeCategory(layoutType) === filter;
+}
+
+function normalizeName(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function matchesOperator(tripName: string, serviceName: string): boolean {
+  const trip = normalizeName(tripName);
+  const service = normalizeName(serviceName);
+  return trip === service || trip.includes(service) || service.includes(trip);
 }
 
 /** Simple deterministic deal discount for demo marketplace look */
@@ -105,8 +135,11 @@ export function SearchResultsClient({
 
   const [timeFilters, setTimeFilters] = useState<TimeBucket[]>([]);
   const [busTypeFilters, setBusTypeFilters] = useState<BusTypeFilter[]>([]);
+  const [operatorFilters, setOperatorFilters] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<SortOption>("recommended");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [priceBounds, setPriceBounds] = useState<[number, number]>([0, 10000]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [expandedTripId, setExpandedTripId] = useState<string | null>(null);
 
@@ -158,13 +191,19 @@ export function SearchResultsClient({
   }, [origin, destination, date]);
 
   const filtered = useMemo(() => {
-    return trips.filter((trip) => {
+    const list = trips.filter((trip) => {
       if (timeFilters.length > 0) {
         if (!timeFilters.includes(tripBucket(trip.departureTime))) return false;
       }
       if (busTypeFilters.length > 0) {
         const ok = busTypeFilters.some((f) =>
           matchesBusType(trip.bus.layoutType, f),
+        );
+        if (!ok) return false;
+      }
+      if (operatorFilters.length > 0) {
+        const ok = operatorFilters.some((svc) =>
+          matchesOperator(trip.operator.name, svc),
         );
         if (!ok) return false;
       }
@@ -176,7 +215,28 @@ export function SearchResultsClient({
       }
       return true;
     });
-  }, [trips, timeFilters, busTypeFilters, priceRange]);
+
+    const sorted = [...list];
+    if (sortBy === "cheapest") {
+      sorted.sort((a, b) => {
+        const aSale = a.basePrice - dealForTrip(a.id, a.basePrice);
+        const bSale = b.basePrice - dealForTrip(b.id, b.basePrice);
+        return aSale - bSale || a.departureTime.localeCompare(b.departureTime);
+      });
+    } else if (sortBy === "earliest") {
+      sorted.sort((a, b) => a.departureTime.localeCompare(b.departureTime));
+    }
+    // recommended: keep API / load order
+    return sorted;
+  }, [trips, timeFilters, busTypeFilters, operatorFilters, priceRange, sortBy]);
+
+  const activeFilterCount =
+    timeFilters.length +
+    busTypeFilters.length +
+    operatorFilters.length +
+    (priceRange[0] > priceBounds[0] || priceRange[1] < priceBounds[1]
+      ? 1
+      : 0);
 
   function toggleTime(bucket: TimeBucket) {
     setTimeFilters((prev) =>
@@ -190,6 +250,19 @@ export function SearchResultsClient({
     setBusTypeFilters((prev) =>
       prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
     );
+  }
+
+  function toggleOperator(name: string) {
+    setOperatorFilters((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name],
+    );
+  }
+
+  function clearFilters() {
+    setTimeFilters([]);
+    setBusTypeFilters([]);
+    setOperatorFilters([]);
+    setPriceRange(priceBounds);
   }
 
   function toggleExpand(tripId: string) {
@@ -226,6 +299,138 @@ export function SearchResultsClient({
     return `${weekdays[dt.getUTCDay()]}, ${d} ${months[m - 1]} ${y}`;
   }, [date]);
 
+  const filterPanel = (
+    <div className="space-y-5">
+      <div>
+        <p className="mb-2 text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
+          Bus type
+        </p>
+        <div className="space-y-2">
+          <FilterChip
+            active={busTypeFilters.includes("executive")}
+            onClick={() => toggleBusType("executive")}
+            label="2×2 Executive"
+          />
+          <FilterChip
+            active={busTypeFilters.includes("business")}
+            onClick={() => toggleBusType("business")}
+            label="2×1 Business"
+          />
+          <FilterChip
+            active={busTypeFilters.includes("sleeper")}
+            onClick={() => toggleBusType("sleeper")}
+            label="Sleeper"
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      <div>
+        <p className="mb-2 text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
+          Bus service
+        </p>
+        <div className="max-h-56 space-y-1.5 overflow-y-auto pr-1">
+          {BUS_SERVICES.map((name) => {
+            const checked = operatorFilters.includes(name);
+            return (
+              <label
+                key={name}
+                className={cn(
+                  "flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm transition",
+                  checked
+                    ? "bg-[#e8eef8] text-[#0a2f6b]"
+                    : "text-[#0a2f6b]/85 hover:bg-[#f3f6fb]",
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleOperator(name)}
+                  className="size-3.5 shrink-0 rounded border-[#0a2f6b]/30 accent-[#0a2f6b]"
+                />
+                <span className="leading-snug">{name}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+
+      <Separator />
+
+      <div>
+        <p className="mb-2 text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
+          Departure time
+        </p>
+        <div className="space-y-2">
+          <FilterChip
+            active={timeFilters.includes("earlyMorning")}
+            onClick={() => toggleTime("earlyMorning")}
+            icon={<Sunrise className="size-3.5" />}
+            label="Early Morning"
+            hint="12:00 AM – 05:59 AM"
+          />
+          <FilterChip
+            active={timeFilters.includes("morning")}
+            onClick={() => toggleTime("morning")}
+            icon={<Sun className="size-3.5" />}
+            label="Morning"
+            hint="06:00 AM – 11:59 AM"
+          />
+          <FilterChip
+            active={timeFilters.includes("afternoon")}
+            onClick={() => toggleTime("afternoon")}
+            icon={<Sunset className="size-3.5" />}
+            label="Afternoon"
+            hint="12:00 PM – 07:59 PM"
+          />
+          <FilterChip
+            active={timeFilters.includes("night")}
+            onClick={() => toggleTime("night")}
+            icon={<Moon className="size-3.5" />}
+            label="Night"
+            hint="08:00 PM – 11:59 PM"
+          />
+        </div>
+      </div>
+
+      <Separator />
+
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <Label className="text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
+            Price range
+          </Label>
+          <span className="text-xs text-[#0a2f6b]/70">
+            {formatPkr(priceRange[0])} – {formatPkr(priceRange[1])}
+          </span>
+        </div>
+        <Slider
+          min={priceBounds[0]}
+          max={priceBounds[1]}
+          step={50}
+          value={priceRange}
+          onValueChange={(value) => {
+            if (Array.isArray(value) && value.length >= 2) {
+              setPriceRange([value[0], value[1]]);
+            }
+          }}
+        />
+      </div>
+
+      {activeFilterCount > 0 ? (
+        <button
+          type="button"
+          onClick={clearFilters}
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#0a2f6b]/15 px-3 py-2 text-sm text-[#0a2f6b] transition hover:bg-[#f3f6fb]"
+        >
+          <X className="size-3.5" />
+          Clear filters
+        </button>
+      ) : null}
+    </div>
+  );
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <div className="mb-6">
@@ -243,87 +448,83 @@ export function SearchResultsClient({
         className="mb-8"
       />
 
-      <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-        <aside className="h-fit rounded-2xl border border-[#0a2f6b]/10 bg-white p-4 shadow-sm">
+      <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+        {/* Mobile filter toggle */}
+        <div className="lg:hidden">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((o) => !o)}
+            className="inline-flex h-11 w-full items-center justify-between rounded-xl border border-[#0a2f6b]/15 bg-white px-4 text-sm font-medium text-[#0a2f6b] shadow-sm"
+          >
+            <span className="inline-flex items-center gap-2">
+              <Filter className="size-4" />
+              Filters
+              {activeFilterCount > 0 ? (
+                <span className="rounded-full bg-[#f5a623] px-2 py-0.5 text-xs font-semibold text-white">
+                  {activeFilterCount}
+                </span>
+              ) : null}
+            </span>
+            <ChevronDown
+              className={cn(
+                "size-4 transition",
+                filtersOpen && "rotate-180",
+              )}
+            />
+          </button>
+          {filtersOpen ? (
+            <aside className="mt-3 rounded-2xl border border-[#0a2f6b]/10 bg-white p-4 shadow-sm">
+              {filterPanel}
+            </aside>
+          ) : null}
+        </div>
+
+        {/* Desktop sidebar */}
+        <aside className="hidden h-fit rounded-2xl border border-[#0a2f6b]/10 bg-white p-4 shadow-sm lg:sticky lg:top-4 lg:block">
           <div className="mb-3 flex items-center gap-2 text-[#0a2f6b]">
             <Filter className="size-4" />
             <h2 className="font-heading text-lg font-semibold">Filters</h2>
           </div>
-
-          <div className="space-y-5">
-            <div>
-              <p className="mb-2 text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
-                Departure time
-              </p>
-              <div className="space-y-2">
-                <FilterChip
-                  active={timeFilters.includes("morning")}
-                  onClick={() => toggleTime("morning")}
-                  icon={<Sun className="size-3.5" />}
-                  label="Morning"
-                />
-                <FilterChip
-                  active={timeFilters.includes("afternoon")}
-                  onClick={() => toggleTime("afternoon")}
-                  icon={<Sunset className="size-3.5" />}
-                  label="Afternoon"
-                />
-                <FilterChip
-                  active={timeFilters.includes("night")}
-                  onClick={() => toggleTime("night")}
-                  icon={<Moon className="size-3.5" />}
-                  label="Night"
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div>
-              <p className="mb-2 text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
-                Bus type
-              </p>
-              <div className="space-y-2">
-                <FilterChip
-                  active={busTypeFilters.includes("2x2")}
-                  onClick={() => toggleBusType("2x2")}
-                  label="2x2 Executive"
-                />
-                <FilterChip
-                  active={busTypeFilters.includes("2x1")}
-                  onClick={() => toggleBusType("2x1")}
-                  label="2x1 Sleeper"
-                />
-              </div>
-            </div>
-
-            <Separator />
-
-            <div>
-              <div className="mb-3 flex items-center justify-between">
-                <Label className="text-xs font-medium tracking-wide text-[#0a2f6b]/55 uppercase">
-                  Price range
-                </Label>
-                <span className="text-xs text-[#0a2f6b]/70">
-                  {formatPkr(priceRange[0])} – {formatPkr(priceRange[1])}
-                </span>
-              </div>
-              <Slider
-                min={priceBounds[0]}
-                max={priceBounds[1]}
-                step={50}
-                value={priceRange}
-                onValueChange={(value) => {
-                  if (Array.isArray(value) && value.length >= 2) {
-                    setPriceRange([value[0], value[1]]);
-                  }
-                }}
-              />
-            </div>
-          </div>
+          {filterPanel}
         </aside>
 
         <section className="space-y-4">
+          {!loading && !error ? (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-[#0a2f6b]/65">
+                {filtered.length}{" "}
+                {filtered.length === 1 ? "bus found" : "buses found"}
+              </p>
+              <div
+                className="inline-flex flex-wrap rounded-xl border border-[#0a2f6b]/10 bg-white p-1 shadow-sm"
+                role="group"
+                aria-label="Sort results"
+              >
+                {(
+                  [
+                    ["recommended", "Recommended"],
+                    ["cheapest", "Cheapest"],
+                    ["earliest", "Earliest"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setSortBy(value)}
+                    className={cn(
+                      "rounded-lg px-3 py-1.5 text-sm font-medium transition",
+                      sortBy === value
+                        ? "bg-[#0a2f6b] text-white"
+                        : "text-[#0a2f6b]/70 hover:bg-[#f3f6fb] hover:text-[#0a2f6b]",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {loading ? (
             <div className="flex h-48 items-center justify-center gap-2 rounded-2xl border border-dashed border-[#0a2f6b]/15 bg-white text-[#0a2f6b]/70">
               <Loader2 className="size-5 animate-spin" />
@@ -343,8 +544,18 @@ export function SearchResultsClient({
                 No trips match these filters
               </p>
               <p className="mt-2 text-sm text-[#0a2f6b]/65">
-                Try Karachi → Lahore for tomorrow after seeding the database.
+                Try clearing filters or search Karachi → Lahore for tomorrow
+                after seeding the database.
               </p>
+              {activeFilterCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#0a2f6b] px-4 py-2 text-sm font-medium text-white"
+                >
+                  Clear filters
+                </button>
+              ) : null}
             </div>
           ) : null}
 
@@ -352,11 +563,13 @@ export function SearchResultsClient({
             const expanded = expandedTripId === trip.id;
             const deal = dealForTrip(trip.id, trip.basePrice);
             const salePrice = trip.basePrice - deal;
-            const classLabel = busTypeLabel(trip.bus.layoutType).includes(
-              "Sleeper",
-            )
-              ? "Sleeper Class"
-              : "Executive Class";
+            const category = busTypeCategory(trip.bus.layoutType);
+            const classLabel =
+              category === "sleeper"
+                ? "Sleeper Class"
+                : category === "business"
+                  ? "Business Class"
+                  : "Executive Class";
 
             return (
               <article
@@ -391,7 +604,8 @@ export function SearchResultsClient({
                           {trip.operator.name}
                         </h3>
                         <p className="text-xs text-[#0a2f6b]/55">
-                          {trip.bus.busNumber}
+                          {trip.bus.busNumber} ·{" "}
+                          {busTypeLabel(trip.bus.layoutType)}
                         </p>
                       </div>
                     </div>
@@ -507,11 +721,13 @@ function FilterChip({
   active,
   onClick,
   label,
+  hint,
   icon,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
+  hint?: string;
   icon?: ReactNode;
 }) {
   return (
@@ -526,7 +742,19 @@ function FilterChip({
       )}
     >
       {icon}
-      {label}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span>{label}</span>
+        {hint ? (
+          <span
+            className={cn(
+              "text-[10px] leading-tight",
+              active ? "text-white/75" : "text-[#0a2f6b]/45",
+            )}
+          >
+            {hint}
+          </span>
+        ) : null}
+      </span>
     </button>
   );
 }

@@ -69,11 +69,21 @@ export function defaultTravelDate(): string {
   return toDateInputValue(tomorrow);
 }
 
-export type BusLayoutType = "2x2" | "2x1_SLEEPER" | string;
+export type BusLayoutType = "2x2" | "2x1" | "2x1_SLEEPER" | string;
+
+/** Maps layoutType to SastaTicket-style bus class. */
+export function busTypeCategory(
+  layoutType: string,
+): "executive" | "business" | "sleeper" {
+  const t = layoutType.toUpperCase();
+  if (t.includes("SLEEPER")) return "sleeper";
+  if (t.includes("2X1") || t.includes("BUSINESS")) return "business";
+  return "executive";
+}
 
 export function busTypeLabel(layoutType: string): string {
-  if (layoutType.includes("2x1") || layoutType.includes("SLEEPER")) {
-    return "2x1 Sleeper";
-  }
-  return "2x2 Executive";
+  const cat = busTypeCategory(layoutType);
+  if (cat === "sleeper") return "Sleeper";
+  if (cat === "business") return "2×1 Business";
+  return "2×2 Executive";
 }
