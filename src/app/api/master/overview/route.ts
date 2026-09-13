@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { PaymentStatus, UserRole } from "@prisma/client";
-import { getMasterUser } from "@/lib/admin-auth";
+import { getAdminUser } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
 /**
  * GET /api/master/overview
- * Platform-wide staff, fleet, bookings, and finance snapshot for MASTER.
+ * Platform-wide staff, fleet, bookings, and finance snapshot for Master portal.
  */
 export async function GET() {
-  const master = await getMasterUser();
-  if (!master) {
+  const user = await getAdminUser();
+  if (!user) {
     return NextResponse.json(
       { success: false, message: "Unauthorized" },
       { status: 401 },

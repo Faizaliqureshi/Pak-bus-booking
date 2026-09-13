@@ -83,11 +83,11 @@ export default function AdminDashboardPage() {
         <div className="flex gap-2">
           <Button
             className="bg-teal-800 text-white hover:bg-teal-700"
-            render={<Link href="/admin/routes" />}
+            render={<Link href="/master/routes" />}
           >
             <Plus className="size-4" /> Add route / trip
           </Button>
-          <Button variant="outline" render={<Link href="/admin/buses" />}>
+          <Button variant="outline" render={<Link href="/master/buses" />}>
             Register bus
           </Button>
         </div>
@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
           <Button
             variant="ghost"
             size="sm"
-            render={<Link href="/admin/manifest" />}
+            render={<Link href="/master/manifest" />}
           >
             <Armchair className="size-4" /> Manifests
           </Button>

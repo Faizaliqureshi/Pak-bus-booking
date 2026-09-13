@@ -6,21 +6,17 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-const CREATABLE: UserRole[] = [
-  UserRole.ADMIN,
-  UserRole.OPERATOR,
-  UserRole.CONDUCTOR,
-];
+const CREATABLE: UserRole[] = [UserRole.ADMIN, UserRole.OPERATOR];
 
 /**
  * POST /api/master/staff
- * Master creates Admin, Partner (OPERATOR), or Conductor directly.
+ * Master creates Platform staff (ADMIN) or Partner (OPERATOR).
  */
 export async function POST(request: Request) {
   const master = await getMasterUser();
   if (!master) {
     return NextResponse.json(
-      { success: false, message: "Unauthorized" },
+      { success: false, message: "Unauthorized — Master only." },
       { status: 401 },
     );
   }
@@ -32,8 +28,6 @@ export async function POST(request: Request) {
       email?: string;
       phone?: string;
       password?: string;
-      /** Optional: attach conductor under a partner */
-      partnerId?: string;
     };
 
     const roleRaw = (body.role ?? "").toUpperCase();
@@ -42,15 +36,13 @@ export async function POST(request: Request) {
         ? UserRole.OPERATOR
         : roleRaw === "ADMIN"
           ? UserRole.ADMIN
-          : roleRaw === "CONDUCTOR"
-            ? UserRole.CONDUCTOR
-            : null;
+          : null;
 
     if (!role || !CREATABLE.includes(role)) {
       return NextResponse.json(
         {
           success: false,
-          message: "Role must be ADMIN, PARTNER (OPERATOR), or CONDUCTOR.",
+          message: "Role must be ADMIN (platform staff) or PARTNER.",
         },
         { status: 400 },
       );
@@ -82,21 +74,6 @@ export async function POST(request: Request) {
       );
     }
 
-    let createdById = master.id;
-    if (role === UserRole.CONDUCTOR && body.partnerId) {
-      const partner = await prisma.user.findFirst({
-        where: { id: body.partnerId, role: UserRole.OPERATOR },
-        select: { id: true },
-      });
-      if (!partner) {
-        return NextResponse.json(
-          { success: false, message: "Selected partner not found." },
-          { status: 400 },
-        );
-      }
-      createdById = partner.id;
-    }
-
     const user = await prisma.user.create({
       data: {
         name,
@@ -104,17 +81,13 @@ export async function POST(request: Request) {
         phone,
         passwordHash: hashPassword(password),
         role,
-        createdById,
+        createdById: master.id,
       },
       select: { id: true, name: true, email: true, role: true },
     });
 
     const roleLabel =
-      role === UserRole.OPERATOR
-        ? "Partner"
-        : role === UserRole.ADMIN
-          ? "Admin"
-          : "Conductor";
+      role === UserRole.OPERATOR ? "Partner" : "Platform staff";
 
     return NextResponse.json(
       {

@@ -71,6 +71,19 @@ export function defaultTravelDate(): string {
 
 export type BusLayoutType = "2x2" | "2x1" | "2x1_SLEEPER" | string;
 
+/** Canonical bus layout values shared by booking + staff portals. */
+export const BUS_LAYOUT_OPTIONS = [
+  { value: "2x2", label: "2×2 Executive" },
+  { value: "2x1", label: "2×1 Business" },
+  { value: "2x1_SLEEPER", label: "Sleeper" },
+] as const;
+
+export const ALLOWED_BUS_LAYOUT_TYPES = BUS_LAYOUT_OPTIONS.map((o) => o.value);
+
+export function isAllowedBusLayoutType(layoutType: string): boolean {
+  return (ALLOWED_BUS_LAYOUT_TYPES as readonly string[]).includes(layoutType);
+}
+
 /** Maps layoutType to SastaTicket-style bus class. */
 export function busTypeCategory(
   layoutType: string,
@@ -86,4 +99,110 @@ export function busTypeLabel(layoutType: string): string {
   if (cat === "sleeper") return "Sleeper";
   if (cat === "business") return "2×1 Business";
   return "2×2 Executive";
+}
+
+/** Marketplace-style class pill (Luxury / Business / Sleeper). */
+export function busClassPill(layoutType: string): string {
+  const cat = busTypeCategory(layoutType);
+  if (cat === "sleeper") return "Sleeper";
+  if (cat === "business") return "Business";
+  return "Luxury";
+}
+
+const CITY_URDU: Record<string, string> = {
+  Karachi: "کراچی",
+  Lahore: "لاہور",
+  Islamabad: "اسلام آباد",
+  Rawalpindi: "راولپنڈی",
+  "Islamabad/Rawalpindi": "اسلام آباد / راولپنڈی",
+  "Rawalpindi/Islamabad": "راولپنڈی / اسلام آباد",
+  Multan: "ملتان",
+  Faisalabad: "فیصل آباد",
+  Peshawar: "پشاور",
+  Sukkur: "سکھر",
+  Hyderabad: "حیدرآباد",
+  Abbottabad: "ایبٹ آباد",
+  Swat: "سوات",
+  Quetta: "کوئٹہ",
+  Mingora: "منگورہ",
+};
+
+/** English city with optional Urdu parenthetical, e.g. Karachi (کراچی). */
+export function bilingualCity(city: string): string {
+  const urdu = CITY_URDU[city];
+  return urdu ? `${city} (${urdu})` : city;
+}
+
+export type BusAmenityId =
+  | "audio"
+  | "entertainment"
+  | "ac"
+  | "wifi"
+  | "usb"
+  | "blanket"
+  | "water"
+  | "restroom";
+
+export interface BusAmenity {
+  id: BusAmenityId;
+  label: string;
+}
+
+/** Deterministic amenity set from layout + trip id (demo marketplace). */
+export function amenitiesForTrip(
+  layoutType: string,
+  tripId: string,
+): BusAmenity[] {
+  const cat = busTypeCategory(layoutType);
+  const base: BusAmenity[] = [
+    { id: "ac", label: "Air Conditioned" },
+    { id: "audio", label: "Audio System" },
+    { id: "entertainment", label: "Entertainment / TV" },
+  ];
+  if (cat === "business" || cat === "sleeper") {
+    base.push({ id: "wifi", label: "Wi‑Fi" }, { id: "usb", label: "USB Charging" });
+  } else {
+    let hash = 0;
+    for (let i = 0; i < tripId.length; i++) {
+      hash = (hash + tripId.charCodeAt(i) * (i + 1)) % 97;
+    }
+    if (hash % 2 === 0) base.push({ id: "usb", label: "USB Charging" });
+    if (hash % 3 === 0) base.push({ id: "wifi", label: "Wi‑Fi" });
+  }
+  if (cat === "sleeper") {
+    base.push(
+      { id: "blanket", label: "Blanket & Pillow" },
+      { id: "water", label: "Complimentary Water" },
+    );
+  }
+  base.push({ id: "restroom", label: "Onboard Restroom" });
+  return base;
+}
+
+/** Deterministic refundable flag for marketplace cards. */
+export function isTripRefundable(tripId: string): boolean {
+  let hash = 0;
+  for (let i = 0; i < tripId.length; i++) {
+    hash = (hash + tripId.charCodeAt(i) * (i + 1)) % 11;
+  }
+  return hash % 2 === 0;
+}
+
+const BUS_IMAGE_POOL = [
+  "https://images.unsplash.com/photo-1544620341-a629aafb9ce?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1570125909517-53cb21c89ff2?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&w=800&q=80",
+] as const;
+
+/** Three coach images for the expanded trip gallery. */
+export function busImagesForTrip(tripId: string): string[] {
+  let hash = 0;
+  for (let i = 0; i < tripId.length; i++) {
+    hash = (hash + tripId.charCodeAt(i) * (i + 1)) % BUS_IMAGE_POOL.length;
+  }
+  return [0, 1, 2].map(
+    (offset) => BUS_IMAGE_POOL[(hash + offset) % BUS_IMAGE_POOL.length],
+  );
 }

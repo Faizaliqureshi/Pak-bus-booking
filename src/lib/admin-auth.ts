@@ -12,8 +12,8 @@ export type StaffUser = {
 const ADMIN_CONSOLE_ROLES: UserRole[] = [UserRole.ADMIN, UserRole.MASTER];
 
 /**
- * Session user allowed into /admin console (ADMIN or MASTER).
- * MASTER can also use admin overview; partners use /partner.
+ * Session user for the unified Master portal (MASTER or ADMIN).
+ * Partners use /partner; passengers use /auth.
  */
 export async function getAdminUser(): Promise<StaffUser | null> {
   const user = await getSessionUser();
@@ -28,6 +28,7 @@ export async function getAdminUser(): Promise<StaffUser | null> {
   };
 }
 
+/** Master-only actions (e.g. create platform staff). */
 export async function getMasterUser(): Promise<StaffUser | null> {
   const user = await getSessionUser();
   if (!user || user.role !== UserRole.MASTER) return null;

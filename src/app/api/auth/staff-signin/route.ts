@@ -35,14 +35,13 @@ export async function POST(request: Request) {
     if (
       user.role !== "MASTER" &&
       user.role !== "ADMIN" &&
-      user.role !== "OPERATOR" &&
-      user.role !== "CONDUCTOR"
+      user.role !== "OPERATOR"
     ) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "This login is for master, admin, partner, and conductor accounts.",
+            "This login is for Master and Partner staff. Passengers use Sign In.",
         },
         { status: 403 },
       );

@@ -78,7 +78,7 @@ model Bus {
   id         String   @id @default(cuid())
   operatorId String
   busNumber  String   @unique // e.g. "FL-2026-VIP", "DAEWOO-786"
-  layoutType String // "2x2", "2x1_SLEEPER"
+  layoutType String // "2x2" | "2x1" | "2x1_SLEEPER"
   totalSeats Int
   createdAt  DateTime @default(now())
 

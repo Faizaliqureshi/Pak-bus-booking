@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   BusFront,
   Copy,
@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatPkr } from "@/lib/booking-utils";
+import { busTypeLabel, formatPkr } from "@/lib/booking-utils";
 import { cn } from "@/lib/utils";
 
 type OverviewData = {
@@ -102,7 +102,7 @@ type OverviewData = {
   }>;
 };
 
-type StaffRole = "ADMIN" | "PARTNER" | "CONDUCTOR";
+type StaffRole = "ADMIN" | "PARTNER";
 
 type CreatedCreds = {
   roleLabel: string;
@@ -132,7 +132,6 @@ export default function MasterHomePage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [partnerId, setPartnerId] = useState("");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [creds, setCreds] = useState<CreatedCreds | null>(null);
@@ -158,11 +157,6 @@ export default function MasterHomePage() {
     void load();
   }, [load]);
 
-  const partnerOptions = useMemo(
-    () => data?.partners.map((p) => ({ id: p.id, name: p.name })) ?? [],
-    [data],
-  );
-
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -178,7 +172,6 @@ export default function MasterHomePage() {
           email,
           phone,
           password: password || undefined,
-          partnerId: role === "CONDUCTOR" ? partnerId || undefined : undefined,
         }),
       });
       const json = await res.json();
@@ -194,7 +187,6 @@ export default function MasterHomePage() {
       setEmail("");
       setPhone("");
       setPassword("");
-      setPartnerId("");
       await load();
       setTab("staff");
     } catch (err) {
@@ -242,8 +234,8 @@ export default function MasterHomePage() {
             Master control centre
           </h1>
           <p className="mt-1 text-sm text-[#0a2f6b]/65">
-            Full platform overview — create admins or partners directly, track
-            staff, fleet, bookings, and finance.
+            Unified platform portal — staff, fleet, routes, bookings, and
+            finance. Partners use /partner/fleet; passengers use Sign In.
           </p>
         </div>
         <Button
@@ -282,7 +274,7 @@ export default function MasterHomePage() {
               icon={<Users className="size-4" />}
               label="Total staff"
               value={String(summary.totalStaff)}
-              hint={`${summary.admins} admins · ${summary.partners} partners · ${summary.conductors} conductors`}
+              hint={`${summary.admins} platform staff · ${summary.partners} partners`}
             />
             <Kpi
               icon={<BusFront className="size-4" />}
@@ -304,9 +296,9 @@ export default function MasterHomePage() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <Panel title="Admins">
+            <Panel title="Platform staff">
               {data.admins.length === 0 ? (
-                <Empty>No admins yet.</Empty>
+                <Empty>No platform staff yet.</Empty>
               ) : (
                 <ul className="divide-y divide-[#0a2f6b]/8">
                   {data.admins.map((a) => (
@@ -325,7 +317,7 @@ export default function MasterHomePage() {
                 </ul>
               )}
             </Panel>
-            <Panel title="Partners & conductors">
+            <Panel title="Partners">
               {data.partners.length === 0 ? (
                 <Empty>No partners yet.</Empty>
               ) : (
@@ -339,12 +331,6 @@ export default function MasterHomePage() {
                         {p.busCount === 1 ? "" : "es"}
                         {p.buses.length
                           ? ` (${p.buses.map((b) => b.busNumber).join(", ")})`
-                          : ""}
-                      </p>
-                      <p className="text-xs text-[#0a2f6b]/50">
-                        Conductors: {p.conductorsCount}
-                        {p.conductors.length
-                          ? ` — ${p.conductors.map((c) => c.name).join(", ")}`
                           : ""}
                       </p>
                     </li>
@@ -367,9 +353,8 @@ export default function MasterHomePage() {
               <div className="flex flex-wrap gap-2">
                 {(
                   [
-                    ["ADMIN", "Admin"],
+                    ["ADMIN", "Platform staff"],
                     ["PARTNER", "Partner"],
-                    ["CONDUCTOR", "Conductor"],
                   ] as const
                 ).map(([value, label]) => (
                   <button
@@ -388,8 +373,8 @@ export default function MasterHomePage() {
                 ))}
               </div>
               <p className="text-xs text-[#0a2f6b]/55">
-                Master can create Admin or Partner directly. Conductors can be
-                linked under a partner fleet.
+                Platform staff share this Master portal. Partners manage their
+                own fleet at /partner/fleet.
               </p>
             </div>
 
@@ -422,23 +407,6 @@ export default function MasterHomePage() {
                 className="h-11"
               />
             </div>
-            {role === "CONDUCTOR" ? (
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label>Assign under partner (optional)</Label>
-                <select
-                  value={partnerId}
-                  onChange={(e) => setPartnerId(e.target.value)}
-                  className="h-11 w-full rounded-lg border border-[#0a2f6b]/15 bg-white px-3 text-sm"
-                >
-                  <option value="">Master (unassigned / platform)</option>
-                  {partnerOptions.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : null}
             <div className="space-y-1.5 sm:col-span-2">
               <Label>Password (optional — auto-generated if blank)</Label>
               <Input
@@ -462,12 +430,7 @@ export default function MasterHomePage() {
                 ) : (
                   <>
                     <Plus className="size-4" />
-                    Create{" "}
-                    {role === "ADMIN"
-                      ? "admin"
-                      : role === "PARTNER"
-                        ? "partner"
-                        : "conductor"}
+                    Create {role === "ADMIN" ? "platform staff" : "partner"}
                   </>
                 )}
               </Button>
@@ -503,7 +466,7 @@ export default function MasterHomePage() {
       {tab === "staff" ? (
         <div className="space-y-4">
           <StaffTable
-            title={`Admins (${data.admins.length})`}
+            title={`Platform staff (${data.admins.length})`}
             rows={data.admins.map((a) => ({
               id: a.id,
               name: a.name,
@@ -520,19 +483,8 @@ export default function MasterHomePage() {
               name: p.name,
               email: p.email,
               phone: p.phone,
-              meta: `${p.busCount} buses · ${p.conductorsCount} conductors · via ${p.createdBy?.name ?? "—"}`,
+              meta: `${p.busCount} buses · via ${p.createdBy?.name ?? "—"}`,
               createdAt: p.createdAt,
-            }))}
-          />
-          <StaffTable
-            title={`Conductors (${data.conductors.length})`}
-            rows={data.conductors.map((c) => ({
-              id: c.id,
-              name: c.name,
-              email: c.email,
-              phone: c.phone,
-              meta: `Under ${c.createdBy?.name ?? "platform"} (${c.createdBy?.role ?? "—"})`,
-              createdAt: c.createdAt,
             }))}
           />
         </div>
@@ -566,7 +518,7 @@ export default function MasterHomePage() {
                     <tr key={b.id} className="border-t border-[#0a2f6b]/8">
                       <td className="px-4 py-3 font-medium">{b.busNumber}</td>
                       <td className="px-4 py-3">{b.operator.name}</td>
-                      <td className="px-4 py-3">{b.layoutType}</td>
+                      <td className="px-4 py-3">{busTypeLabel(b.layoutType)}</td>
                       <td className="px-4 py-3">{b.totalSeats}</td>
                       <td className="px-4 py-3">{b.tripsCount}</td>
                     </tr>

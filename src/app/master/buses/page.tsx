@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { busTypeLabel } from "@/lib/booking-utils";
+import { BUS_LAYOUT_OPTIONS, busTypeLabel } from "@/lib/booking-utils";
 
 type BusRow = {
   id: string;
@@ -126,8 +126,11 @@ export default function AdminBusesPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="2x2">2x2 Executive</SelectItem>
-                    <SelectItem value="2x1_SLEEPER">2x1 Sleeper</SelectItem>
+                    {BUS_LAYOUT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

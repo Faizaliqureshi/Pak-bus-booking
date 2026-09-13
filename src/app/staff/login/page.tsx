@@ -14,24 +14,14 @@ const DEMO_STAFF = [
     portal: "/master",
     email: "master@ticketpass.pk",
     password: "password123",
-  },
-  {
-    role: "Admin",
-    portal: "/admin/dashboard",
-    email: "admin@ticketpass.pk",
-    password: "password123",
+    hint: "Platform control + ops",
   },
   {
     role: "Partner",
     portal: "/partner/fleet",
     email: "partner@ticketpass.pk",
     password: "password123",
-  },
-  {
-    role: "Conductor",
-    portal: "/conductor/scan",
-    email: "conductor@ticketpass.pk",
-    password: "password123",
+    hint: "Fleet & coaches",
   },
 ] as const;
 
@@ -74,9 +64,11 @@ export default function StaffLoginPage() {
           Staff portal login
         </h1>
         <p className="mt-1 text-sm text-[#0a2f6b]/60">
-          Master, Admin, Partner, and Conductor. Customers use{" "}
+          Three portals:{" "}
+          <strong>Master</strong> (platform), <strong>Partner</strong>{" "}
+          (fleet), and{" "}
           <Link href="/auth/sign-in" className="underline">
-            Sign In
+            Passenger
           </Link>
           .
         </p>
@@ -144,6 +136,9 @@ export default function StaffLoginPage() {
                 <span className="block font-mono text-[11px] text-[#0a2f6b]/70">
                   {account.email}
                 </span>
+                <span className="mt-0.5 block text-[11px] text-[#0a2f6b]/45">
+                  {account.hint}
+                </span>
               </span>
               <span className="shrink-0 text-[10px] font-medium text-[#0a2f6b]/45">
                 {account.portal}
@@ -151,7 +146,13 @@ export default function StaffLoginPage() {
             </button>
           ))}
           <p className="text-center text-[11px] text-[#0a2f6b]/45">
-            Password for all demos: <strong>password123</strong>
+            Password for demos: <strong>password123</strong>
+          </p>
+          <p className="text-center text-[11px] text-[#0a2f6b]/45">
+            Passenger demo:{" "}
+            <Link href="/auth/sign-in" className="underline">
+              ali.khan@example.pk
+            </Link>
           </p>
         </div>
       </div>

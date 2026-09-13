@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getPartnerUser } from "@/lib/admin-auth";
+import { isAllowedBusLayoutType } from "@/lib/booking-utils";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -46,9 +47,12 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
-  if (!["2x2", "2x1_SLEEPER"].includes(layoutType)) {
+  if (!isAllowedBusLayoutType(layoutType)) {
     return NextResponse.json(
-      { success: false, message: "layoutType must be 2x2 or 2x1_SLEEPER." },
+      {
+        success: false,
+        message: "layoutType must be 2x2, 2x1, or 2x1_SLEEPER.",
+      },
       { status: 400 },
     );
   }

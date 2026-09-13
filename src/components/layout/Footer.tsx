@@ -36,7 +36,6 @@ export function Footer() {
 
   if (
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/conductor") ||
     pathname.startsWith("/master") ||
     pathname.startsWith("/staff") ||
     pathname.startsWith("/partner/fleet")

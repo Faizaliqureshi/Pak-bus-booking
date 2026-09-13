@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default function AdminIndexPage() {
-  redirect("/admin/dashboard");
+/** Legacy /admin entry — unified into Master portal. */
+export default function AdminIndexRedirect() {
+  redirect("/master");
 }

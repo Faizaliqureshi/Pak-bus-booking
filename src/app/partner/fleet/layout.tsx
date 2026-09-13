@@ -17,7 +17,7 @@ export default async function PartnerFleetLayout({
             Partner access required
           </h1>
           <p className="mt-2 text-sm text-[#0a2f6b]/65">
-            Sign in with the operator credentials shared by your TicketPass admin.
+            Sign in with a Partner account from Staff login.
           </p>
           <Link
             href="/staff/login"

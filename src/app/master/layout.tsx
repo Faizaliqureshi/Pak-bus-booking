@@ -1,15 +1,20 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { getMasterUser } from "@/lib/admin-auth";
+import { getAdminUser } from "@/lib/admin-auth";
+import { MasterSidebar } from "@/components/master/MasterSidebar";
 
+/**
+ * Unified Master portal — MASTER and ADMIN share the same console.
+ * Partner uses /partner; passengers use /auth + /account.
+ */
 export default async function MasterLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const master = await getMasterUser();
+  const user = await getAdminUser();
 
-  if (!master) {
+  if (!user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f3f6fb] px-4">
         <div className="max-w-md rounded-2xl border bg-white p-8 text-center shadow-sm">
@@ -17,7 +22,7 @@ export default async function MasterLayout({
             Master access required
           </h1>
           <p className="mt-2 text-sm text-[#0a2f6b]/65">
-            Sign in with a MASTER account for the platform control centre.
+            Sign in with a Master or platform Admin account.
           </p>
           <Link
             href="/staff/login"
@@ -31,34 +36,29 @@ export default async function MasterLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f6fb] text-[#0a2f6b]">
-      <header className="border-b border-[#0a2f6b]/10 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
+    <div className="flex min-h-screen bg-[#f3f6fb] text-[#0a2f6b]">
+      <div className="sticky top-0 hidden h-screen md:block">
+        <MasterSidebar userName={user.name} userRole={user.role} />
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center justify-between border-b border-[#0a2f6b]/10 bg-white px-4 py-3 md:px-6">
           <div>
-            <p className="font-heading text-xl font-bold">
-              Ticket<span className="text-[#f5a623]">Pass</span> Master
+            <p className="text-xs tracking-[0.18em] text-[#0a2f6b]/55 uppercase md:hidden">
+              TicketPass Master
             </p>
-            <p className="text-xs text-[#0a2f6b]/55">
-              Signed in as {master.name} · platform owner
+            <p className="text-sm text-[#0a2f6b]/65">
+              Signed in as {user.name}
             </p>
           </div>
-          <nav className="flex flex-wrap gap-3 text-sm font-medium">
-            <Link href="/master" className="hover:underline">
-              Control centre
-            </Link>
-            <Link href="/admin/dashboard" className="hover:underline">
-              Admin console
-            </Link>
-            <Link href="/staff/login" className="hover:underline">
-              Switch account
-            </Link>
-            <Link href="/" className="hover:underline">
-              Site
-            </Link>
+          <nav className="flex gap-3 overflow-x-auto text-xs font-medium md:hidden">
+            <Link href="/master">Control</Link>
+            <Link href="/master/dashboard">Ops</Link>
+            <Link href="/master/buses">Fleet</Link>
+            <Link href="/master/manifest">Manifest</Link>
           </nav>
-        </div>
-      </header>
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
+        </header>
+        <div className="flex-1 p-4 md:p-6">{children}</div>
+      </div>
     </div>
   );
 }

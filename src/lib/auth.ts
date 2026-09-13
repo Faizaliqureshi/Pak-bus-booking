@@ -111,10 +111,9 @@ export function pkMobileLocal(phone: string | null | undefined): string {
 }
 
 export function staffHomeForRole(role: string): string {
-  if (role === "MASTER") return "/master";
-  if (role === "ADMIN") return "/admin/dashboard";
+  // Unified Master portal for MASTER + ADMIN; Partner fleet; passengers → home.
+  if (role === "MASTER" || role === "ADMIN") return "/master";
   if (role === "OPERATOR") return "/partner/fleet";
-  if (role === "CONDUCTOR") return "/conductor/scan";
   return "/";
 }
 
