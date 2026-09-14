@@ -178,6 +178,7 @@ export function SearchWidget({
         <Button
           type="submit"
           size="lg"
+          data-testid="search-buses-btn"
           className="h-12 bg-[#FF5A1F] px-6 text-white hover:bg-[#e84e16] md:min-w-[150px]"
         >
           Search Buses

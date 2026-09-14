@@ -68,6 +68,17 @@ async function main() {
     },
   });
 
+  await prisma.user.create({
+    data: {
+      email: "conductor@ticketpass.pk",
+      passwordHash: hashPassword("password123"),
+      name: "Coach Conductor",
+      phone: "+923001110003",
+      role: UserRole.CONDUCTOR,
+      createdById: operator.id,
+    },
+  });
+
   const passenger = await prisma.user.create({
     data: {
       email: "ali.khan@example.pk",
@@ -175,6 +186,7 @@ async function main() {
   console.log("Seed complete.");
   console.log("Master:     master@ticketpass.pk / password123  → /master");
   console.log("Partner:    partner@ticketpass.pk / password123 → /partner/fleet");
+  console.log("Conductor:  conductor@ticketpass.pk / password123 → /conductor");
   console.log("Passenger:  ali.khan@example.pk / password123 → /auth/sign-in");
 }
 

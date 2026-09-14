@@ -17,7 +17,6 @@ const NAV = [
   { href: "/umrah-packages", label: "Umrah Packages" },
   { href: "/holiday-packages", label: "Holiday Packages" },
   { href: "/visa", label: "Visa" },
-  { href: "/rewards", label: "Sasta Rewards" },
   { href: "/partner/register", label: "Partner Registration" },
   { href: "/about-us", label: "About Us" },
   { href: "/contact-us", label: "Contact Us" },
@@ -29,7 +28,6 @@ const PROFILE_LINKS = [
   { href: "/account/cancel-booking", label: "Cancel Booking" },
   { href: "/account/edit-profile", label: "Edit Profile" },
   { href: "/account/wallet", label: "TicketPass Wallet" },
-  { href: "/rewards", label: "Sasta Rewards" },
 ] as const;
 
 type SessionUser = {
@@ -111,7 +109,8 @@ export function Navbar() {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/master") ||
     pathname.startsWith("/staff") ||
-    pathname.startsWith("/partner/fleet")
+    pathname.startsWith("/partner/fleet") ||
+    pathname.startsWith("/conductor")
   ) {
     return null;
   }
@@ -174,13 +173,6 @@ export function Navbar() {
         </div>
 
         <div className="relative flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-          <Link
-            href="/rewards"
-            className="hidden items-center gap-1 rounded-full bg-[#fff4ef] px-2.5 py-1.5 text-xs font-semibold text-[#FF5A1F] hover:bg-[#ffe8dc] md:inline-flex"
-          >
-            Sasta Rewards
-          </Link>
-
           <a
             href={`tel:${HELPLINE_TEL}`}
             className="inline-flex items-center gap-1.5 rounded-full bg-[#0a2f6b]/5 px-2.5 py-1.5 text-xs font-semibold text-[#0a2f6b] sm:px-3"

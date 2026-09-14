@@ -6,11 +6,15 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-const CREATABLE: UserRole[] = [UserRole.ADMIN, UserRole.OPERATOR];
+const CREATABLE: UserRole[] = [
+  UserRole.ADMIN,
+  UserRole.OPERATOR,
+  UserRole.CONDUCTOR,
+];
 
 /**
  * POST /api/master/staff
- * Master creates Platform staff (ADMIN) or Partner (OPERATOR).
+ * Master creates platform staff, Partner, or Conductor.
  */
 export async function POST(request: Request) {
   const master = await getMasterUser();
@@ -36,13 +40,15 @@ export async function POST(request: Request) {
         ? UserRole.OPERATOR
         : roleRaw === "ADMIN"
           ? UserRole.ADMIN
-          : null;
+          : roleRaw === "CONDUCTOR"
+            ? UserRole.CONDUCTOR
+            : null;
 
     if (!role || !CREATABLE.includes(role)) {
       return NextResponse.json(
         {
           success: false,
-          message: "Role must be ADMIN (platform staff) or PARTNER.",
+          message: "Role must be ADMIN, PARTNER, or CONDUCTOR.",
         },
         { status: 400 },
       );
@@ -87,7 +93,11 @@ export async function POST(request: Request) {
     });
 
     const roleLabel =
-      role === UserRole.OPERATOR ? "Partner" : "Platform staff";
+      role === UserRole.OPERATOR
+        ? "Partner"
+        : role === UserRole.CONDUCTOR
+          ? "Conductor"
+          : "Platform staff";
 
     return NextResponse.json(
       {

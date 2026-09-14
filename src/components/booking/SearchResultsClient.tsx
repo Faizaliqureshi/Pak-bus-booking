@@ -2,57 +2,28 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  Bus,
   ChevronDown,
   Filter,
-  Headphones,
   Loader2,
-  Monitor,
   Moon,
   Sunrise,
   Sun,
   Sunset,
-  Tag,
   X,
 } from "lucide-react";
-import { InteractiveSeatMap } from "@/components/booking/InteractiveSeatMap";
 import { SearchWidget } from "@/components/booking/SearchWidget";
-import { Badge } from "@/components/ui/badge";
+import { TripResultCard } from "@/components/booking/TripResultCard";
+import type { TripSearchResult } from "@/components/booking/trip-types";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import {
   busTypeCategory,
-  busTypeLabel,
-  formatDuration,
   formatPkr,
-  formatTime,
 } from "@/lib/booking-utils";
 import { cn } from "@/lib/utils";
 
-export interface TripSearchResult {
-  id: string;
-  departureTime: string;
-  arrivalTime: string;
-  durationMs: number;
-  basePrice: number;
-  bus: {
-    id: string;
-    busNumber: string;
-    layoutType: string;
-    totalSeats: number;
-  };
-  operator: { id: string; name: string };
-  route: {
-    id: string;
-    name: string;
-    originCity: string;
-    destinationCity: string;
-    distanceKm: number;
-  };
-  boardingStop: { id: string; name: string; order: number } | null;
-  dropStop: { id: string; name: string; order: number } | null;
-}
+export type { TripSearchResult };
 
 type TimeBucket = "earlyMorning" | "morning" | "afternoon" | "night";
 type BusTypeFilter = "executive" | "business" | "sleeper";
@@ -559,158 +530,16 @@ export function SearchResultsClient({
             </div>
           ) : null}
 
-          {filtered.map((trip) => {
-            const expanded = expandedTripId === trip.id;
-            const deal = dealForTrip(trip.id, trip.basePrice);
-            const salePrice = trip.basePrice - deal;
-            const category = busTypeCategory(trip.bus.layoutType);
-            const classLabel =
-              category === "sleeper"
-                ? "Sleeper Class"
-                : category === "business"
-                  ? "Business Class"
-                  : "Executive Class";
-
-            return (
-              <article
-                key={trip.id}
-                className={cn(
-                  "overflow-hidden rounded-2xl border bg-white shadow-sm transition",
-                  expanded
-                    ? "border-[#f5a623]/60"
-                    : "border-[#0a2f6b]/10 hover:border-[#0a2f6b]/20",
-                )}
-              >
-                {deal > 0 ? (
-                  <div className="flex items-center gap-2 bg-[#fff4e0] px-4 py-1.5 text-xs font-medium text-[#9a6200]">
-                    <Tag className="size-3.5 text-[#f5a623]" />
-                    PassDeal: Save {formatPkr(deal)}
-                  </div>
-                ) : null}
-
-                <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-[1fr_auto] md:items-center">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex size-12 items-center justify-center rounded-xl bg-[#e8eef8] font-heading text-sm font-bold text-[#0a2f6b]">
-                        {trip.operator.name
-                          .split(" ")
-                          .map((w) => w[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </div>
-                      <div>
-                        <h3 className="font-heading text-lg font-semibold text-[#0a2f6b]">
-                          {trip.operator.name}
-                        </h3>
-                        <p className="text-xs text-[#0a2f6b]/55">
-                          {trip.bus.busNumber} ·{" "}
-                          {busTypeLabel(trip.bus.layoutType)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                      <p className="font-heading text-2xl font-semibold text-[#0a2f6b]">
-                        {formatTime(trip.departureTime)}
-                      </p>
-                      <span className="inline-flex items-center gap-2 text-[#0a2f6b]/35">
-                        <span className="h-px w-6 bg-current sm:w-10" />
-                        <Bus className="size-4" />
-                        <span className="h-px w-6 bg-current sm:w-10" />
-                      </span>
-                      <p className="font-heading text-2xl font-semibold text-[#0a2f6b]">
-                        {formatTime(trip.arrivalTime)}
-                      </p>
-                      <span className="text-xs text-[#0a2f6b]/45">
-                        {formatDuration(trip.durationMs)}
-                      </span>
-                    </div>
-
-                    <p className="mt-2 text-sm font-medium text-[#0a2f6b]">
-                      {trip.route.originCity} — {trip.route.destinationCity}
-                    </p>
-                    <p className="mt-1 text-xs text-[#0a2f6b]/55">
-                      {trip.boardingStop?.name ?? trip.route.originCity} —{" "}
-                      {trip.dropStop?.name ?? trip.route.destinationCity}
-                    </p>
-
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-[#0a2f6b]/45">
-                        <Headphones className="size-3.5" />
-                        <Monitor className="size-3.5" />
-                      </span>
-                      <Badge
-                        variant="secondary"
-                        className="bg-[#eef2f8] text-[#0a2f6b]"
-                      >
-                        {classLabel}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-red-300 text-red-600"
-                      >
-                        Non Refundable
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-stretch gap-2 md:items-end">
-                    <div className="text-right">
-                      {deal > 0 ? (
-                        <p className="text-sm text-[#0a2f6b]/45 line-through">
-                          {formatPkr(trip.basePrice)}
-                        </p>
-                      ) : null}
-                      <p className="font-heading text-2xl font-semibold text-[#0a2f6b]">
-                        {formatPkr(salePrice)}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => toggleExpand(trip.id)}
-                      className={cn(
-                        "inline-flex h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition",
-                        expanded
-                          ? "bg-[#0a2f6b] text-white"
-                          : "bg-[#0a2f6b] text-white hover:bg-[#08305f]",
-                      )}
-                    >
-                      Check Seats
-                      <ChevronDown
-                        className={cn(
-                          "size-4 transition",
-                          expanded && "rotate-180",
-                        )}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {expanded ? (
-                  <div className="border-t border-[#0a2f6b]/8 bg-[#fafbfd] p-4 sm:p-5">
-                    {trip.boardingStop && trip.dropStop && userId ? (
-                      <InteractiveSeatMap
-                        tripId={trip.id}
-                        boardingStopId={trip.boardingStop.id}
-                        dropStopId={trip.dropStop.id}
-                        basePrice={trip.basePrice}
-                        dealDiscount={deal}
-                        layoutType={trip.bus.layoutType}
-                        userId={userId}
-                        operatorName={trip.operator.name}
-                      />
-                    ) : (
-                      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-                        Demo user not found. Run{" "}
-                        <code>npx prisma db seed</code>.
-                      </div>
-                    )}
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
+          {filtered.map((trip) => (
+            <TripResultCard
+              key={trip.id}
+              trip={trip}
+              expanded={expandedTripId === trip.id}
+              deal={dealForTrip(trip.id, trip.basePrice)}
+              userId={userId}
+              onToggle={() => toggleExpand(trip.id)}
+            />
+          ))}
         </section>
       </div>
     </div>

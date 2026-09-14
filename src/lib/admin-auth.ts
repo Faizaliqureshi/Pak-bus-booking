@@ -53,6 +53,18 @@ export async function getPartnerUser(): Promise<StaffUser | null> {
   };
 }
 
+export async function getConductorUser(): Promise<StaffUser | null> {
+  const user = await getSessionUser();
+  if (!user || user.role !== UserRole.CONDUCTOR) return null;
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    createdById: user.createdById,
+  };
+}
+
 export function assertAdminRole(role: UserRole): boolean {
   return ADMIN_CONSOLE_ROLES.includes(role);
 }

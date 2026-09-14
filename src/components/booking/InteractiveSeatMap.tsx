@@ -1,10 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, Timer, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Bus,
+  Check,
+  Info,
+  Loader2,
+  Timer,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatPkr } from "@/lib/booking-utils";
+import { formatPkr, busTypeLabel } from "@/lib/booking-utils";
 import { cn } from "@/lib/utils";
 
 const MAX_SEATS = 4;
@@ -200,6 +209,7 @@ export function InteractiveSeatMap({
         );
       });
     } catch (err) {
+      setPayload(null);
       setError(err instanceof Error ? err.message : "Failed to load seats.");
     } finally {
       setLoading(false);
@@ -240,6 +250,8 @@ export function InteractiveSeatMap({
 
   const remainingMs = earliestExpiry ? earliestExpiry - now : 0;
   const totalFare = selected.length * unitPrice;
+  const seatsUnavailable =
+    !loading && (!payload || payload.totalSeats === 0 || rows.length === 0);
 
   async function toggleSeat(seatNumber: string) {
     const apiSeat = seatMap.get(seatNumber);
@@ -262,7 +274,11 @@ export function InteractiveSeatMap({
     setError(null);
 
     try {
-      if (isSelected || status === "SELECTED_MALE" || status === "SELECTED_FEMALE") {
+      if (
+        isSelected ||
+        status === "SELECTED_MALE" ||
+        status === "SELECTED_FEMALE"
+      ) {
         const res = await fetch("/api/seats/unlock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -359,14 +375,14 @@ export function InteractiveSeatMap({
       <div>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h3 className="font-heading text-lg font-semibold text-[#0a2f6b]">
+            <h3 className="text-lg font-bold text-[#374151]">
               Select Your Seat
             </h3>
-            <p className="mt-1 text-sm text-[#0a2f6b]/60">
+            <p className="mt-1 text-sm text-[#6b7280]">
               You can book maximum {MAX_SEATS} seats at a time.
             </p>
           </div>
-          {payload ? (
+          {payload && !seatsUnavailable ? (
             <p className="text-sm font-medium text-[#1a73e8]">
               Available seats {payload.availableSeatsCount}/{payload.totalSeats}
             </p>
@@ -411,7 +427,7 @@ export function InteractiveSeatMap({
           </div>
         ) : null}
 
-        {error ? (
+        {error && !seatsUnavailable ? (
           <p className="mt-3 text-sm text-red-700" role="alert">
             {error}
           </p>
@@ -423,15 +439,40 @@ export function InteractiveSeatMap({
               <Loader2 className="size-5 animate-spin" />
               Loading seat map…
             </div>
+          ) : seatsUnavailable ? (
+            <div className="flex min-h-64 flex-col items-center justify-center px-4 py-10 text-center">
+              <AlertTriangle
+                className="size-14 text-[#eab308]"
+                strokeWidth={1.5}
+                fill="#fef08a"
+              />
+              <p className="mt-4 text-lg font-semibold text-[#374151]">
+                No Result Found
+              </p>
+              <p className="mt-1 max-w-sm text-sm text-[#6b7280]">
+                {error
+                  ? error
+                  : "Please try another date or modify your search."}
+              </p>
+              <button
+                type="button"
+                onClick={() => void fetchSeats()}
+                className="mt-4 rounded-md border border-[#0a2f6b]/20 bg-white px-4 py-2 text-sm font-medium text-[#0a2f6b] transition hover:bg-[#e8eef8]"
+              >
+                Retry loading seats
+              </button>
+            </div>
           ) : (
             <div className="mx-auto flex w-full max-w-md flex-col items-center gap-3">
               <p className="text-xs tracking-wide text-[#0a2f6b]/45 uppercase">
                 {operatorName ? `${operatorName} · ` : ""}
-                {isSleeper ? "2×1 Sleeper" : "2×2 Executive"} · Lower deck
+                {busTypeLabel(layoutType)} · Lower deck
               </p>
 
               <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-[#0a2f6b]/10 bg-white px-3 py-2 text-[11px] font-medium text-[#0a2f6b]/70">
-                <span className="rounded-md bg-[#0a2f6b]/8 px-2 py-1">🚪 Front exit</span>
+                <span className="rounded-md bg-[#0a2f6b]/8 px-2 py-1">
+                  🚪 Front exit
+                </span>
                 <span className="inline-flex items-center gap-1.5 rounded-md bg-[#0a2f6b] px-2.5 py-1 text-white">
                   🛞 Driver cabin
                 </span>
@@ -490,29 +531,48 @@ export function InteractiveSeatMap({
       </div>
 
       <aside className="flex flex-col rounded-2xl border border-[#0a2f6b]/10 bg-white p-4">
-        <div className="space-y-2 text-sm text-[#0a2f6b]/75">
+        <div className="grid grid-cols-1 gap-2.5 text-sm text-[#374151] sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          <Legend swatch="border-0 bg-[#f48fb1]" label="Reserved (Female)" />
+          <Legend swatch="border-0 bg-[#0a2f6b]" label="Reserved (Male)" />
           <Legend
-            swatch="border-2 border-[#f8bbd0] bg-[#fce4ec]"
-            label="Reserved (Female)"
-          />
-          <Legend swatch="bg-[#0a2f6b]" label="Reserved (Male)" />
-          <Legend
-            swatch="bg-[#f48fb1]"
+            swatch="border-2 border-[#f48fb1] bg-white"
             label="Selected (Female)"
             checked
+            checkClass="text-[#f48fb1]"
           />
-          <Legend swatch="bg-[#0a2f6b]" label="Selected (Male)" checked />
+          <Legend
+            swatch="border-2 border-[#0a2f6b] bg-white"
+            label="Selected (Male)"
+            checked
+            checkClass="text-[#0a2f6b]"
+          />
           <Legend
             swatch="border border-[#9aa8bc] bg-white"
             label="Available"
           />
         </div>
 
-        <div className="mt-6">
+        <div className="mt-5 flex items-start gap-2 text-sm text-[#1a73e8]">
+          <Bus className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} />
+          <p>
+            For refund/cancellation kindly review{" "}
+            <Link
+              href="/terms-and-conditions"
+              className="font-medium underline underline-offset-2 hover:text-[#0a2f6b]"
+            >
+              Terms and Conditions
+            </Link>
+          </p>
+        </div>
+
+        <div className="mt-4">
           <p className="text-sm font-semibold text-[#0a2f6b]">Selected Seats</p>
           <div className="mt-2 flex min-h-10 flex-wrap gap-2">
             {selected.length === 0 ? (
-              <p className="text-xs text-[#0a2f6b]/45">No seats selected yet</p>
+              <p className="inline-flex items-start gap-1.5 text-xs text-[#6b7280]">
+                <Info className="mt-0.5 size-3.5 shrink-0 text-[#9ca3af]" />
+                Please select an available seat from the chart to continue.
+              </p>
             ) : (
               selected
                 .slice()
@@ -543,8 +603,14 @@ export function InteractiveSeatMap({
             </p>
           </div>
           <Button
-            className="h-12 w-full bg-[#0a2f6b] text-white hover:bg-[#08305f]"
-            disabled={selected.length === 0 || checkingOut}
+            data-testid="continue-booking-btn"
+            className={cn(
+              "h-12 w-full text-white",
+              selected.length === 0
+                ? "bg-[#c5cdd8] hover:bg-[#c5cdd8]"
+                : "bg-[#0a2f6b] hover:bg-[#08305f]",
+            )}
+            disabled={selected.length === 0 || checkingOut || seatsUnavailable}
             onClick={() => void proceedToCheckout()}
           >
             {checkingOut ? (
@@ -569,10 +635,12 @@ function Legend({
   swatch,
   label,
   checked,
+  checkClass = "text-white",
 }: {
   swatch: string;
   label: string;
   checked?: boolean;
+  checkClass?: string;
 }) {
   return (
     <span className="inline-flex items-center gap-2">
@@ -582,7 +650,9 @@ function Legend({
           swatch,
         )}
       >
-        {checked ? <Check className="size-2.5 text-white" strokeWidth={3} /> : null}
+        {checked ? (
+          <Check className={cn("size-2.5", checkClass)} strokeWidth={3} />
+        ) : null}
       </span>
       {label}
     </span>
@@ -614,6 +684,7 @@ function SeatButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
+      data-testid={`seat-${seatNumber}`}
       className={cn(
         "relative flex aspect-square w-full items-center justify-center rounded-md border text-xs font-semibold transition-all duration-150",
         seatClass(status),

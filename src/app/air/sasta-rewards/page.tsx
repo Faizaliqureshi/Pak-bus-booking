@@ -1,9 +1,5 @@
-import { RewardsClient } from "@/components/rewards/RewardsClient";
+import { redirect } from "next/navigation";
 
-export default function RewardsPage() {
-  return (
-    <main className="min-h-[70vh] bg-[#f3f6fb]">
-      <RewardsClient />
-    </main>
-  );
+export default function AirSastaRewardsRemovedPage() {
+  redirect("/");
 }

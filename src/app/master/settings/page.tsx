@@ -13,17 +13,20 @@ export default function MasterSettingsPage() {
 
       <Card className="border-[#0a2f6b]/10 shadow-sm">
         <CardHeader>
-          <CardTitle className="font-heading text-xl">Three portals</CardTitle>
+          <CardTitle className="font-heading text-xl">Portals</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-[#0a2f6b]/75">
           <p>
             <strong>Master</strong> (`/master`) — platform control and ops
-            (MASTER or ADMIN roles). Staff creation, fleet, routes, manifests,
-            and finance live here.
+            (MASTER or ADMIN).
           </p>
           <p>
             <strong>Partner</strong> (`/partner/fleet`) — operator fleet
-            management (OPERATOR role).
+            (OPERATOR).
+          </p>
+          <p>
+            <strong>Conductor</strong> (`/conductor`) — reservations list and
+            onboard QR/PNR scan (CONDUCTOR).
           </p>
           <p>
             <strong>Passenger</strong> (
@@ -31,10 +34,6 @@ export default function MasterSettingsPage() {
               /auth/sign-in
             </Link>
             ) — booking, tickets, wallet, and profile.
-          </p>
-          <p className="text-[#0a2f6b]/55">
-            Legacy `/admin/*` URLs redirect into this Master portal. The
-            Conductor portal has been removed.
           </p>
         </CardContent>
       </Card>

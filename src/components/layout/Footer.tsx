@@ -38,7 +38,8 @@ export function Footer() {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/master") ||
     pathname.startsWith("/staff") ||
-    pathname.startsWith("/partner/fleet")
+    pathname.startsWith("/partner/fleet") ||
+    pathname.startsWith("/conductor")
   ) {
     return null;
   }

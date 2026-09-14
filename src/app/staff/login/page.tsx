@@ -23,6 +23,13 @@ const DEMO_STAFF = [
     password: "password123",
     hint: "Fleet & coaches",
   },
+  {
+    role: "Conductor",
+    portal: "/conductor",
+    email: "conductor@ticketpass.pk",
+    password: "password123",
+    hint: "Reservations + onboard scan",
+  },
 ] as const;
 
 export default function StaffLoginPage() {
@@ -64,11 +71,11 @@ export default function StaffLoginPage() {
           Staff portal login
         </h1>
         <p className="mt-1 text-sm text-[#0a2f6b]/60">
-          Three portals:{" "}
-          <strong>Master</strong> (platform), <strong>Partner</strong>{" "}
-          (fleet), and{" "}
+          Three staff portals:{" "}
+          <strong>Master</strong>, <strong>Partner</strong>,{" "}
+          <strong>Conductor</strong>. Passengers use{" "}
           <Link href="/auth/sign-in" className="underline">
-            Passenger
+            Sign In
           </Link>
           .
         </p>

@@ -102,7 +102,7 @@ type OverviewData = {
   }>;
 };
 
-type StaffRole = "ADMIN" | "PARTNER";
+type StaffRole = "ADMIN" | "PARTNER" | "CONDUCTOR";
 
 type CreatedCreds = {
   roleLabel: string;
@@ -355,6 +355,7 @@ export default function MasterHomePage() {
                   [
                     ["ADMIN", "Platform staff"],
                     ["PARTNER", "Partner"],
+                    ["CONDUCTOR", "Conductor"],
                   ] as const
                 ).map(([value, label]) => (
                   <button
@@ -373,8 +374,8 @@ export default function MasterHomePage() {
                 ))}
               </div>
               <p className="text-xs text-[#0a2f6b]/55">
-                Platform staff share this Master portal. Partners manage their
-                own fleet at /partner/fleet.
+                Platform staff use Master. Partners manage fleet. Conductors
+                see reservations and scan passengers onboard.
               </p>
             </div>
 
@@ -430,7 +431,12 @@ export default function MasterHomePage() {
                 ) : (
                   <>
                     <Plus className="size-4" />
-                    Create {role === "ADMIN" ? "platform staff" : "partner"}
+                    Create{" "}
+                    {role === "ADMIN"
+                      ? "platform staff"
+                      : role === "PARTNER"
+                        ? "partner"
+                        : "conductor"}
                   </>
                 )}
               </Button>

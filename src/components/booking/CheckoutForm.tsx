@@ -523,6 +523,7 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
 
           <Button
             type="submit"
+            data-testid="pay-confirm-btn"
             disabled={submitting || expired}
             className="mt-4 h-11 w-full bg-[#FF5A1F] text-white hover:bg-[#e84e16]"
           >
