@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Gender, PaymentStatus } from "@prisma/client";
-import { getAdminUser } from "@/lib/admin-auth";
 import {
   buildQrPayload,
   formatCnic,
@@ -11,6 +10,8 @@ import {
 } from "@/lib/checkout-utils";
 import { isSegmentOverlapping } from "@/lib/seat-availability";
 import { prisma } from "@/lib/prisma";
+import { adminJwtResponse, requireAdminJwt } from "@/lib/rbac";
+import { markTripSeatsBooked, provisionTripSeats } from "@/lib/trip-inventory";
 
 export const runtime = "nodejs";
 
@@ -19,10 +20,9 @@ export const runtime = "nodejs";
  * Counter staff creates a PAID walk-in ticket for an available seat.
  */
 export async function POST(request: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdminJwt();
+  if (!auth.ok) return adminJwtResponse(auth);
+  const admin = auth.user;
 
   try {
     const body = await request.json();
@@ -137,6 +137,8 @@ export async function POST(request: NextRequest) {
       buildQrPayload({ pnr, tripId, seats: [seatNumber] }),
     );
 
+    await provisionTripSeats(tripId);
+
     const booking = await prisma.booking.create({
       data: {
         pnr,
@@ -164,6 +166,8 @@ export async function POST(request: NextRequest) {
       },
       include: { tickets: true },
     });
+
+    await markTripSeatsBooked(tripId, [seatNumber], booking.id);
 
     return NextResponse.json(
       {

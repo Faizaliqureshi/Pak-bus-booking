@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminUser } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { adminJwtResponse, requireAdminJwt } from "@/lib/rbac";
+import { provisionTripSeats } from "@/lib/trip-inventory";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const admin = await getAdminUser();
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdminJwt();
+  if (!auth.ok) return adminJwtResponse(auth);
 
   const trips = await prisma.trip.findMany({
     orderBy: { departureTime: "asc" },
@@ -55,10 +54,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdminJwt();
+  if (!auth.ok) return adminJwtResponse(auth);
 
   const body = await request.json();
   const busId = String(body.busId ?? "").trim();
@@ -106,6 +103,8 @@ export async function POST(request: NextRequest) {
       basePrice,
     },
   });
+
+  await provisionTripSeats(trip.id);
 
   return NextResponse.json({ success: true, data: trip }, { status: 201 });
 }

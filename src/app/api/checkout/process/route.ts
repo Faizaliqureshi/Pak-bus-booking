@@ -13,6 +13,7 @@ import {
 } from "@/lib/checkout-utils";
 import { sendLocalSMS, sendWhatsAppTicket } from "@/lib/notifications";
 import { unlockSeat } from "@/lib/redis-lock";
+import { markTripSeatsBooked } from "@/lib/trip-inventory";
 
 export const runtime = "nodejs";
 
@@ -251,6 +252,10 @@ export async function POST(request: NextRequest) {
       }),
     );
 
+    const gateway = await prisma.paymentGateway.findUnique({
+      where: { gatewayType: paymentMethod },
+    });
+
     const updated = await prisma.$transaction(async (tx) => {
       if (booking.tickets.length > 0) {
         await tx.ticket.deleteMany({ where: { bookingId: booking.id } });
@@ -273,6 +278,7 @@ export async function POST(request: NextRequest) {
         data: {
           paymentStatus: PaymentStatus.PAID,
           paymentMethod,
+          paymentGatewayId: gateway?.id ?? null,
           contactPhone: contactPhone.replace(/[\s-]/g, ""),
           contactEmail: contactEmail.trim().toLowerCase(),
           qrCodeUrl: qrPayload,
@@ -280,6 +286,8 @@ export async function POST(request: NextRequest) {
         },
       });
     });
+
+    await markTripSeatsBooked(booking.tripId, heldSeats, booking.id);
 
     // Release Redis + Prisma seat locks
     await Promise.all(

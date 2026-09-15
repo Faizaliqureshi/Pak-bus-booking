@@ -2,6 +2,7 @@ import {
   Gender,
   PaymentStatus,
   PrismaClient,
+  TripSeatStatus,
   UserRole,
 } from "@prisma/client";
 import { randomBytes, scryptSync } from "crypto";
@@ -16,8 +17,10 @@ function hashPassword(password: string): string {
 
 async function clearDatabase() {
   await prisma.ticket.deleteMany();
+  await prisma.tripSeat.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.seatLock.deleteMany();
+  await prisma.paymentGateway.deleteMany();
   await prisma.rewardTransaction.deleteMany();
   await prisma.rewardsAccount.deleteMany();
   await prisma.walletTransaction.deleteMany();
@@ -89,8 +92,6 @@ async function main() {
     },
   });
 
-  void passenger;
-
   const bus = await prisma.bus.create({
     data: {
       operatorId: operator.id,
@@ -100,12 +101,50 @@ async function main() {
     },
   });
 
+  await prisma.paymentGateway.createMany({
+    data: [
+      {
+        name: "JazzCash",
+        gatewayType: "JAZZCASH",
+        flatFee: 0,
+        percentageFee: 1.5,
+        isActive: true,
+      },
+      {
+        name: "Easypaisa",
+        gatewayType: "EASYPAISA",
+        flatFee: 0,
+        percentageFee: 1.5,
+        isActive: true,
+      },
+      {
+        name: "Card",
+        gatewayType: "CARD",
+        flatFee: 25,
+        percentageFee: 2.5,
+        isActive: true,
+      },
+      {
+        name: "1Bill",
+        gatewayType: "ONEBILL",
+        flatFee: 0,
+        percentageFee: 1.0,
+        isActive: true,
+      },
+    ],
+  });
+
+  const jazzCash = await prisma.paymentGateway.findUniqueOrThrow({
+    where: { gatewayType: "JAZZCASH" },
+  });
+
   const route = await prisma.route.create({
     data: {
       name: "Karachi to Lahore Express",
       originCity: "Karachi",
       destinationCity: "Lahore",
       distanceKm: 1260,
+      baseFare: 4500,
       stops: {
         create: [
           {
@@ -155,10 +194,18 @@ async function main() {
     },
   });
 
+  await prisma.tripSeat.createMany({
+    data: Array.from({ length: bus.totalSeats }, (_, i) => ({
+      tripId: trip.id,
+      seatNumber: String(i + 1),
+      status: TripSeatStatus.AVAILABLE,
+    })),
+  });
+
   const boarding = route.stops[0]!;
   const drop = route.stops[route.stops.length - 1]!;
 
-  await prisma.booking.create({
+  const booking = await prisma.booking.create({
     data: {
       pnr: "PKR-8921A",
       userId: passenger.id,
@@ -166,6 +213,7 @@ async function main() {
       totalPrice: 4500,
       paymentStatus: PaymentStatus.PAID,
       paymentMethod: "JAZZCASH",
+      paymentGatewayId: jazzCash.id,
       contactPhone: passenger.phone,
       contactEmail: passenger.email,
       tickets: {
@@ -180,6 +228,16 @@ async function main() {
           },
         ],
       },
+    },
+  });
+
+  await prisma.tripSeat.update({
+    where: {
+      tripId_seatNumber: { tripId: trip.id, seatNumber: "12" },
+    },
+    data: {
+      status: TripSeatStatus.BOOKED,
+      bookingId: booking.id,
     },
   });
 

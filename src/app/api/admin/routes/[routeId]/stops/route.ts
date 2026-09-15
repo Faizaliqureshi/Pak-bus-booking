@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminUser } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { adminJwtResponse, requireAdminJwt } from "@/lib/rbac";
 
 export const runtime = "nodejs";
 
 type RouteContext = { params: Promise<{ routeId: string }> };
 
 export async function POST(request: NextRequest, context: RouteContext) {
-  const admin = await getAdminUser();
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdminJwt();
+  if (!auth.ok) return adminJwtResponse(auth);
 
   const { routeId } = await context.params;
   const body = await request.json();

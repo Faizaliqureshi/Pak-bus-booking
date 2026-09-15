@@ -2,6 +2,12 @@ import { timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { signHmac } from "@/lib/password";
+import {
+  ACCESS_COOKIE,
+  ACCESS_COOKIE_OPTIONS,
+  signAccessToken,
+  toJwtAccessRole,
+} from "@/lib/jwt";
 
 export {
   hashPassword,
@@ -58,11 +64,26 @@ export async function setSessionCookie(userId: string) {
     path: "/",
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   });
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, name: true, role: true },
+  });
+  if (user) {
+    const accessToken = await signAccessToken({
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      role: toJwtAccessRole(user.role),
+    });
+    jar.set(ACCESS_COOKIE, accessToken, ACCESS_COOKIE_OPTIONS);
+  }
 }
 
 export async function clearSessionCookie() {
   const jar = await cookies();
   jar.delete(SESSION_COOKIE);
+  jar.delete(ACCESS_COOKIE);
 }
 
 export async function getSessionUser() {

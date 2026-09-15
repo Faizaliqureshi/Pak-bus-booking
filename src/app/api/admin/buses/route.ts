@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
-import { getAdminUser } from "@/lib/admin-auth";
 import { isAllowedBusLayoutType } from "@/lib/booking-utils";
 import { prisma } from "@/lib/prisma";
+import { adminJwtResponse, requireAdminJwt } from "@/lib/rbac";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const admin = await getAdminUser();
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdminJwt();
+  if (!auth.ok) return adminJwtResponse(auth);
 
   const buses = await prisma.bus.findMany({
     include: {
@@ -35,10 +33,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const admin = await getAdminUser();
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdminJwt();
+  if (!auth.ok) return adminJwtResponse(auth);
+  const admin = auth.user;
 
   const body = await request.json();
   const busNumber = String(body.busNumber ?? "").trim().toUpperCase();

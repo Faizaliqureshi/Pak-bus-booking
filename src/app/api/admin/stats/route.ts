@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { PaymentStatus } from "@prisma/client";
-import { dayBoundsPkt, getAdminUser } from "@/lib/admin-auth";
+import { dayBoundsPkt } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { adminJwtResponse, requireAdminJwt } from "@/lib/rbac";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const admin = await getAdminUser();
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdminJwt();
+  if (!auth.ok) return adminJwtResponse(auth);
 
   const { start, end } = dayBoundsPkt();
 

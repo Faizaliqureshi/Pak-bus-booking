@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
 import { UserRole } from "@prisma/client";
-import { getAdminUser } from "@/lib/admin-auth";
 import { generateTempPassword, hashPassword } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { adminJwtResponse, requireAdminJwt } from "@/lib/rbac";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const admin = await getAdminUser();
-  if (!admin) {
-    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await requireAdminJwt();
+  if (!auth.ok) return adminJwtResponse(auth);
+  const admin = auth.user;
 
   const partners = await prisma.user.findMany({
     where: {
       role: UserRole.OPERATOR,
       ...(admin.role === UserRole.ADMIN ? { createdById: admin.id } : {}),
+      ...(admin.role === UserRole.OPERATOR ? { id: admin.id } : {}),
     },
     orderBy: { createdAt: "desc" },
     select: {
@@ -42,9 +42,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const admin = await getAdminUser();
-  if (!admin || (admin.role !== UserRole.ADMIN && admin.role !== UserRole.MASTER)) {
-    return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+  const auth = await requireAdminJwt();
+  if (!auth.ok) return adminJwtResponse(auth);
+  const admin = auth.user;
+  if (admin.role !== UserRole.ADMIN && admin.role !== UserRole.MASTER) {
+    return NextResponse.json(
+      { success: false, message: "Forbidden" },
+      { status: 403 },
+    );
   }
 
   try {

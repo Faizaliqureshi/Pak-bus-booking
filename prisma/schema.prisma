@@ -30,6 +30,12 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum TripSeatStatus {
+  AVAILABLE
+  LOCKED
+  BOOKED
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -66,6 +72,7 @@ model User {
   operatedBuses Bus[]      @relation("BusOperator")
   seatLocks     SeatLock[]
   bookings      Booking[]
+  lockedSeats   TripSeat[] @relation("TripSeatLockedBy")
   wallet        Wallet?
   rewards       RewardsAccount?
 
@@ -79,6 +86,7 @@ model Bus {
   operatorId String
   busNumber  String   @unique // e.g. "FL-2026-VIP", "DAEWOO-786"
   layoutType String // "2x2" | "2x1" | "2x1_SLEEPER"
+  /// Seat inventory size (ERD: totalCapacity). Operator name lives on User via operatorId.
   totalSeats Int
   createdAt  DateTime @default(now())
 
@@ -90,11 +98,13 @@ model Bus {
 }
 
 model Route {
-  id              String @id @default(cuid())
+  id              String  @id @default(cuid())
   name            String
-  originCity      String
+  originCity      String // ERD: sourceCity
   destinationCity String
   distanceKm      Float
+  /// Default corridor fare in PKR (trip.basePrice can override per departure).
+  baseFare        Decimal @default(0)
 
   stops RouteStop[]
   trips Trip[]
@@ -125,11 +135,13 @@ model Trip {
   routeId       String
   departureTime DateTime
   arrivalTime   DateTime
-  basePrice     Decimal // PKR
+  /// Per-departure fare in PKR (ERD: baseFare).
+  basePrice     Decimal
 
   bus       Bus        @relation(fields: [busId], references: [id], onDelete: Restrict)
   route     Route      @relation(fields: [routeId], references: [id], onDelete: Restrict)
   seatLocks SeatLock[]
+  seats     TripSeat[]
   bookings  Booking[]
 
   @@index([busId])
@@ -158,31 +170,36 @@ model SeatLock {
 }
 
 model Booking {
-  id             String        @id @default(cuid())
-  pnr            String        @unique // e.g. "PKR-8921A"
-  userId         String
-  tripId         String
-  totalPrice     Decimal // PKR
-  paymentStatus  PaymentStatus @default(PENDING)
-  paymentMethod  String? // JAZZCASH | EASYPAISA | CARD
-  qrCodeUrl      String?
-  contactPhone   String?
-  contactEmail   String?
+  id                String        @id @default(cuid())
+  pnr               String        @unique // e.g. "PKR-8921A"
+  userId            String
+  tripId            String
+  /// ERD: totalFare
+  totalPrice        Decimal
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentMethod     String? // JAZZCASH | EASYPAISA | CARD | ONEBILL
+  paymentGatewayId  String?
+  qrCodeUrl         String?
+  contactPhone      String?
+  contactEmail      String?
   /// Comma-separated seat numbers held during PENDING checkout
-  heldSeats      String?
-  boardingStopId String?
-  dropStopId     String?
-  lockExpiresAt  DateTime?
-  createdAt      DateTime      @default(now())
+  heldSeats         String?
+  boardingStopId    String?
+  dropStopId        String?
+  lockExpiresAt     DateTime?
+  createdAt         DateTime      @default(now())
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
-  trip    Trip     @relation(fields: [tripId], references: [id], onDelete: Restrict)
-  tickets Ticket[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  trip            Trip             @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  paymentGateway  PaymentGateway?  @relation(fields: [paymentGatewayId], references: [id], onDelete: SetNull)
+  tickets         Ticket[]
+  seats           TripSeat[]
 
   @@index([pnr])
   @@index([userId])
   @@index([tripId])
   @@index([paymentStatus])
+  @@index([paymentGatewayId])
   @@map("bookings")
 }
 
@@ -208,6 +225,42 @@ model Ticket {
   @@index([dropStopId])
   @@index([isBoarded])
   @@map("tickets")
+}
+
+/// Per-trip seat inventory. Redis holds the 10-minute hot lock; this table is the SQL source of truth.
+model TripSeat {
+  id             String         @id @default(cuid())
+  tripId         String
+  bookingId      String?
+  seatNumber     String
+  status         TripSeatStatus @default(AVAILABLE)
+  lockedByUserId String?
+  lockedUntil    DateTime?
+
+  trip     Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  booking  Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  lockedBy User?    @relation("TripSeatLockedBy", fields: [lockedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([tripId, seatNumber])
+  @@index([tripId, status])
+  @@index([bookingId])
+  @@index([lockedByUserId])
+  @@map("trip_seats")
+}
+
+/// PSP fee schedule. Booking.paymentMethod stays as the wallet/code the passenger picked.
+model PaymentGateway {
+  id            String  @id @default(cuid())
+  name          String
+  gatewayType   String  @unique // JAZZCASH | EASYPAISA | CARD | ONEBILL
+  flatFee       Decimal @default(0)
+  percentageFee Decimal @default(0)
+  isActive      Boolean @default(true)
+
+  bookings Booking[]
+
+  @@index([isActive])
+  @@map("payment_gateways")
 }
 
 /// Bus operator / partner onboarding applications
