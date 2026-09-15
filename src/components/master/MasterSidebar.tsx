@@ -7,6 +7,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   MapPinned,
+  Radio,
   Settings,
   Shield,
   Users,
@@ -19,6 +20,7 @@ const NAV = [
   { href: "/master/partners", label: "Partners", icon: Users },
   { href: "/master/routes", label: "Routes & Trips", icon: MapPinned },
   { href: "/master/buses", label: "Fleet Manager", icon: Bus },
+  { href: "/master/track", label: "Track Bus", icon: Radio },
   {
     href: "/master/manifest",
     label: "Passenger Manifests",

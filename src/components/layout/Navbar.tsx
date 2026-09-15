@@ -25,6 +25,7 @@ const NAV = [
 ];
 
 const PROFILE_LINKS = [
+  { href: "/account/track-bus", label: "Track Bus" },
   { href: "/account/cancel-booking", label: "Cancel Booking" },
   { href: "/account/edit-profile", label: "Edit Profile" },
   { href: "/account/wallet", label: "TicketPass Wallet" },
@@ -110,6 +111,8 @@ export function Navbar() {
     pathname.startsWith("/master") ||
     pathname.startsWith("/staff") ||
     pathname.startsWith("/partner/fleet") ||
+    pathname.startsWith("/partner/api") ||
+    pathname.startsWith("/partner/track") ||
     pathname.startsWith("/conductor")
   ) {
     return null;

@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { PaymentStatus, TripSeatStatus } from "@prisma/client";
 import { parseHeldSeats } from "@/lib/checkout-utils";
 import { prisma } from "@/lib/prisma";
+import { notifyPartnerBookingPaid } from "@/lib/partner-notify";
 import {
   bookingSeatLockKey,
   getUpstashRedis,
@@ -314,6 +315,8 @@ export async function settleSuccessfulPayment(
   } catch (error) {
     console.error("[payment-webhook] Upstash lock cleanup", error);
   }
+
+  void notifyPartnerBookingPaid(booking.id);
 
   return { found: true, bookingId: booking.id };
 }

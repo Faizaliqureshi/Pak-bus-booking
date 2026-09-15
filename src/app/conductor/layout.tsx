@@ -48,6 +48,9 @@ export default async function ConductorLayout({
             <Link href="/conductor/scan" className="hover:underline">
               Scan onboard
             </Link>
+            <Link href="/conductor/track" className="hover:underline">
+              Track Bus
+            </Link>
             <Link href="/staff/login" className="hover:underline">
               Switch account
             </Link>

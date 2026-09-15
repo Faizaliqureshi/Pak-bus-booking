@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { TripSeatStatus } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { markTripSeatLocked } from "@/lib/trip-inventory";
 import {
   SEAT_LOCK_TTL_SECONDS,
@@ -55,6 +57,18 @@ export async function POST(request: NextRequest) {
     const trip = tripId.trim();
     const seat = seatNumber.trim();
     const holder = userId.trim();
+
+    const inventory = await prisma.tripSeat.findUnique({
+      where: { tripId_seatNumber: { tripId: trip, seatNumber: seat } },
+      select: { status: true },
+    });
+    if (inventory?.status === TripSeatStatus.BOOKED) {
+      return NextResponse.json(
+        { success: false, message: "Seat is already booked." },
+        { status: 409 },
+      );
+    }
+
     const key = bookingSeatLockKey(trip, seat);
     const redis = getUpstashRedis();
 

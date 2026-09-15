@@ -69,12 +69,15 @@ model User {
 
   createdBy     User?   @relation("UserCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   createdUsers  User[]  @relation("UserCreatedBy")
-  operatedBuses Bus[]      @relation("BusOperator")
-  seatLocks     SeatLock[]
-  bookings      Booking[]
-  lockedSeats   TripSeat[] @relation("TripSeatLockedBy")
-  wallet        Wallet?
-  rewards       RewardsAccount?
+  operatedBuses    Bus[]            @relation("BusOperator")
+  operatedRoutes   Route[]          @relation("RouteOperator")
+  seatLocks        SeatLock[]
+  bookings         Booking[]
+  lockedSeats      TripSeat[]       @relation("TripSeatLockedBy")
+  wallet           Wallet?
+  rewards          RewardsAccount?
+  apiKeys          PartnerApiKey[]
+  partnerWebhook   PartnerWebhook?
 
   @@index([role])
   @@index([createdById])
@@ -88,11 +91,14 @@ model Bus {
   layoutType String // "2x2" | "2x1" | "2x1_SLEEPER"
   /// Seat inventory size (ERD: totalCapacity). Operator name lives on User via operatorId.
   totalSeats Int
+  /// Partner GDS / own-system vehicle id (unique per operator).
+  externalId String?
   createdAt  DateTime @default(now())
 
   operator User   @relation("BusOperator", fields: [operatorId], references: [id], onDelete: Restrict)
   trips    Trip[]
 
+  @@unique([operatorId, externalId])
   @@index([operatorId])
   @@map("buses")
 }
@@ -105,11 +111,17 @@ model Route {
   distanceKm      Float
   /// Default corridor fare in PKR (trip.basePrice can override per departure).
   baseFare        Decimal @default(0)
+  /// Null = platform corridor; set when a partner pushes their own route.
+  operatorId      String?
+  externalId      String?
 
-  stops RouteStop[]
-  trips Trip[]
+  operator User?       @relation("RouteOperator", fields: [operatorId], references: [id], onDelete: SetNull)
+  stops    RouteStop[]
+  trips    Trip[]
 
+  @@unique([operatorId, externalId])
   @@index([originCity, destinationCity])
+  @@index([operatorId])
   @@map("routes")
 }
 
@@ -137,6 +149,8 @@ model Trip {
   arrivalTime   DateTime
   /// Per-departure fare in PKR (ERD: baseFare).
   basePrice     Decimal
+  /// Partner GDS departure id (unique per bus).
+  externalId    String?
 
   bus       Bus        @relation(fields: [busId], references: [id], onDelete: Restrict)
   route     Route      @relation(fields: [routeId], references: [id], onDelete: Restrict)
@@ -144,6 +158,7 @@ model Trip {
   seats     TripSeat[]
   bookings  Booking[]
 
+  @@unique([busId, externalId])
   @@index([busId])
   @@index([routeId])
   @@index([departureTime])
@@ -261,6 +276,39 @@ model PaymentGateway {
 
   @@index([isActive])
   @@map("payment_gateways")
+}
+
+/// Opaque API key for a partner's own booking system. Store hash only.
+model PartnerApiKey {
+  id         String    @id @default(cuid())
+  operatorId String
+  name       String    @default("Live key")
+  keyPrefix  String
+  keyHash    String    @unique
+  isActive   Boolean   @default(true)
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  operator User @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  @@index([operatorId, isActive])
+  @@map("partner_api_keys")
+}
+
+/// Outbound booking.paid callback into the partner GDS.
+model PartnerWebhook {
+  id         String   @id @default(cuid())
+  operatorId String   @unique
+  url        String
+  secret     String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  operator User @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  @@map("partner_webhooks")
 }
 
 /// Bus operator / partner onboarding applications

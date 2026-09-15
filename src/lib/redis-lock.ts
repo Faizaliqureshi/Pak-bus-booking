@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { TripSeatStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getRedis } from "@/lib/redis";
 
@@ -55,6 +56,17 @@ export async function lockSeat(
     return {
       success: false,
       message: "tripId, seatNumber, and userId are required.",
+    };
+  }
+
+  const inventory = await prisma.tripSeat.findUnique({
+    where: { tripId_seatNumber: { tripId, seatNumber } },
+    select: { status: true },
+  });
+  if (inventory?.status === TripSeatStatus.BOOKED) {
+    return {
+      success: false,
+      message: "Seat held by another passenger.",
     };
   }
 

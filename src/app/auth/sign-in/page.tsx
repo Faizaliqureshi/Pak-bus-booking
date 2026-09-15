@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { SignInForm } from "@/components/auth/SignInForm";
 
 export default function SignInPage() {
@@ -15,7 +16,9 @@ export default function SignInPage() {
       </div>
       <div className="mx-auto w-full max-w-md px-4 py-8 sm:px-6">
         <div className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-6 shadow-sm sm:p-8">
-          <SignInForm />
+          <Suspense>
+            <SignInForm />
+          </Suspense>
         </div>
       </div>
     </main>

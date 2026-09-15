@@ -1,4 +1,4 @@
-import { Gender, PaymentStatus } from "@prisma/client";
+import { Gender, PaymentStatus, TripSeatStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getActiveLocksForTrip } from "@/lib/redis-lock";
 
@@ -90,7 +90,7 @@ export async function getAvailableSeatsForSegment(
     );
   }
 
-  const [tickets, redisLocks] = await Promise.all([
+  const [tickets, redisLocks, inventory] = await Promise.all([
     prisma.ticket.findMany({
       where: {
         booking: {
@@ -104,7 +104,13 @@ export async function getAvailableSeatsForSegment(
       },
     }),
     getActiveLocksForTrip(tripId),
+    prisma.tripSeat.findMany({
+      where: { tripId, status: TripSeatStatus.BOOKED },
+      select: { seatNumber: true },
+    }),
   ]);
+
+  const partnerBooked = new Set(inventory.map((s) => s.seatNumber));
 
   const lockBySeat = new Map(
     redisLocks.map((lock) => [lock.seatNumber, lock.userId]),
@@ -115,6 +121,11 @@ export async function getAvailableSeatsForSegment(
 
   for (let i = 1; i <= trip.bus.totalSeats; i++) {
     const seatNumber = String(i);
+
+    if (partnerBooked.has(seatNumber)) {
+      seats.push({ seatNumber, status: "BOOKED" });
+      continue;
+    }
 
     const conflicting = tickets.find((ticket) => {
       if (ticket.seatNumber !== seatNumber) return false;

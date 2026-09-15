@@ -54,6 +54,7 @@ export default async function MasterLayout({
             <Link href="/master">Control</Link>
             <Link href="/master/dashboard">Ops</Link>
             <Link href="/master/buses">Fleet</Link>
+            <Link href="/master/track">Track</Link>
             <Link href="/master/manifest">Manifest</Link>
           </nav>
         </header>

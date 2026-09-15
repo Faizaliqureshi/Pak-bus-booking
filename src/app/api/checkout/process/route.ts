@@ -13,6 +13,7 @@ import {
 } from "@/lib/checkout-utils";
 import { sendLocalSMS, sendWhatsAppTicket } from "@/lib/notifications";
 import { unlockSeat } from "@/lib/redis-lock";
+import { notifyPartnerBookingPaid } from "@/lib/partner-notify";
 import { markTripSeatsBooked } from "@/lib/trip-inventory";
 
 export const runtime = "nodejs";
@@ -288,6 +289,7 @@ export async function POST(request: NextRequest) {
     });
 
     await markTripSeatsBooked(booking.tripId, heldSeats, booking.id);
+    void notifyPartnerBookingPaid(booking.id);
 
     // Release Redis + Prisma seat locks
     await Promise.all(
