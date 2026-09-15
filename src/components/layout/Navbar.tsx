@@ -25,10 +25,11 @@ const NAV = [
 ];
 
 const PROFILE_LINKS = [
+  { href: "/account/bookings", label: "Bookings" },
+  { href: "/account/purchase-history", label: "Purchase History" },
+  { href: "/account/wallet", label: "Wallet" },
   { href: "/account/track-bus", label: "Track Bus" },
-  { href: "/account/cancel-booking", label: "Cancel Booking" },
   { href: "/account/edit-profile", label: "Edit Profile" },
-  { href: "/account/wallet", label: "TicketPass Wallet" },
 ] as const;
 
 type SessionUser = {
@@ -187,7 +188,7 @@ export function Navbar() {
           </a>
 
           <Link
-            href="/account/cancel-booking"
+            href="/account/bookings"
             className="hidden items-center gap-1.5 rounded-full border border-[#0a2f6b]/15 px-3 py-1.5 text-xs font-semibold text-[#0a2f6b] hover:bg-[#f3f6fb] sm:inline-flex"
           >
             <Ticket className="size-3.5" />
@@ -230,7 +231,7 @@ export function Navbar() {
                   className="absolute top-full right-0 z-50 mt-2 min-w-[180px] overflow-hidden rounded-md border border-[#d7dde8] bg-white py-1 shadow-[0_8px_24px_-12px_rgba(10,47,107,0.35)]"
                 >
                   <Link
-                    href="/account/cancel-booking"
+                    href="/account/bookings"
                     role="menuitem"
                     onClick={() => setProfileOpen(false)}
                     className="block px-4 py-2.5 text-sm text-[#1a2333] transition hover:bg-[#f3f6fb] sm:hidden"

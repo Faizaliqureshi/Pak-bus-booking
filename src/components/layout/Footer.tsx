@@ -41,7 +41,8 @@ export function Footer() {
     pathname.startsWith("/partner/fleet") ||
     pathname.startsWith("/partner/api") ||
     pathname.startsWith("/partner/track") ||
-    pathname.startsWith("/conductor")
+    pathname.startsWith("/conductor") ||
+    pathname.startsWith("/account")
   ) {
     return null;
   }

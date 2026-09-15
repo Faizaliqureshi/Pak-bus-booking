@@ -133,6 +133,39 @@ export function bilingualCity(city: string): string {
   return urdu ? `${city} (${urdu})` : city;
 }
 
+const CITY_CODES: Record<string, string> = {
+  karachi: "KHI",
+  lahore: "LHE",
+  islamabad: "ISB",
+  rawalpindi: "RWP",
+  "islamabad/rawalpindi": "ISB",
+  "rawalpindi/islamabad": "ISB",
+  multan: "MUL",
+  faisalabad: "FSD",
+  peshawar: "PEW",
+  sukkur: "SKZ",
+  hyderabad: "HDD",
+  abbottabad: "ATD",
+  swat: "SWT",
+  mingora: "SWT",
+  quetta: "UET",
+};
+
+/** Short marketplace city code, e.g. Karachi → KHI. */
+export function cityCode(city: string): string {
+  const key = city.toLowerCase().trim();
+  if (CITY_CODES[key]) return CITY_CODES[key];
+  const letters = city.replace(/[^A-Za-z]/g, "").slice(0, 3).toUpperCase();
+  return letters || city.slice(0, 3).toUpperCase();
+}
+
+export function formatCardDate(iso: string | Date): string {
+  const d = typeof iso === "string" ? new Date(iso) : iso;
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = d.toLocaleString("en-GB", { month: "short" });
+  return `${day} ${month}, ${d.getFullYear()}`;
+}
+
 export type BusAmenityId =
   | "audio"
   | "entertainment"

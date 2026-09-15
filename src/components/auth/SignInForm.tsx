@@ -96,9 +96,17 @@ export function SignInForm() {
           Create an account
         </Link>
       </p>
-      <p className="text-center text-xs text-[#0a2f6b]/45">
+      <button
+        type="button"
+        onClick={() => {
+          setEmail("ali.khan@example.pk");
+          setPassword("password123");
+          setError(null);
+        }}
+        className="w-full rounded-xl border border-[#0a2f6b]/10 bg-[#f3f6fb] px-3 py-2.5 text-left text-xs text-[#0a2f6b]/70 hover:border-[#0a2f6b]/25"
+      >
         Demo passenger: ali.khan@example.pk / password123
-      </p>
+      </button>
     </form>
   );
 }

@@ -187,15 +187,13 @@ export default function EditProfilePage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-[50vh] items-center justify-center bg-[#f3f6fb] text-[#0a2f6b]">
+      <div className="flex min-h-[40vh] items-center justify-center text-[#0a2f6b]">
         <Loader2 className="size-6 animate-spin" />
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-[70vh] bg-[#f3f6fb]">
-      <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
         <form
           onSubmit={onSave}
           className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-5 shadow-sm sm:p-8"
@@ -420,8 +418,6 @@ export default function EditProfilePage() {
             </Button>
           </div>
         </form>
-      </div>
-    </main>
   );
 }
 
