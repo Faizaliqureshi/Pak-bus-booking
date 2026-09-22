@@ -1,4 +1,5 @@
 import { rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { HELPLINE_DISPLAY } from "@/lib/helpline";
 
 export const INVOICE_BANK = {
   accountTitle: "Faiz Ali",
@@ -23,6 +24,7 @@ export function drawInvoiceBankDetails(
     ["Account Number", INVOICE_BANK.accountNumber],
     ["IBAN", INVOICE_BANK.iban],
     ["Bank Name", INVOICE_BANK.bankName],
+    ["Helpline / WhatsApp", HELPLINE_DISPLAY],
   ] as const;
   const boxH = 28 + rows.length * 16;
   page.drawRectangle({

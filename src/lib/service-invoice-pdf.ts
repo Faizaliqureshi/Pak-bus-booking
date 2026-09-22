@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { PaymentStatus } from "@prisma/client";
+import { HELPLINE_DISPLAY } from "@/lib/helpline";
 import { drawInvoiceBankDetails } from "@/lib/invoice-bank";
 
 const NAVY = rgb(10 / 255, 47 / 255, 107 / 255);
@@ -128,5 +129,12 @@ export async function buildServiceInvoicePdf(order: {
     "This invoice is for TicketPass visa, Umrah, or holiday services. Not a bus ticket.",
     { x: 48, y: 52, size: 8, font, color: MUTED },
   );
+  page.drawText(`Helpline / WhatsApp ${HELPLINE_DISPLAY}`, {
+    x: 48,
+    y: 38,
+    size: 8,
+    font,
+    color: MUTED,
+  });
   return pdf.save();
 }
