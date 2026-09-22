@@ -207,7 +207,7 @@ export async function buildETicketPdf(doc: BookingDocument): Promise<Uint8Array>
   });
   page.drawText(
     pdfSafe(
-      `TicketPass e-ticket · Helpline 03123137349 · ${doc.contactPhone ?? ""}`,
+      `TicketPass e-ticket · Helpline 03312882767 · ${doc.contactPhone ?? ""}`,
     ),
     { x: 48, y: 52, size: 8, font, color: MUTED },
   );
@@ -385,7 +385,7 @@ export async function buildInvoicePdf(doc: BookingDocument): Promise<Uint8Array>
     "This invoice is for the TicketPass booking platform. Carriage is provided by the listed operator.",
     { x: 48, y: 52, size: 8, font, color: MUTED },
   );
-  page.drawText("Helpline 03123137349  |  support@ticketpass.pk", {
+  page.drawText("Helpline 03312882767  |  support@ticketpass.pk", {
     x: 48,
     y: 38,
     size: 8,
