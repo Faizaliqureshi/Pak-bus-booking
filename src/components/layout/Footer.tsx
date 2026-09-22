@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/components/layout/ServiceTabs";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 
 const COMPANY = [
   { href: "/about-us", label: "About Us" },

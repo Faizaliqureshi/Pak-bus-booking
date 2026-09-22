@@ -8,11 +8,8 @@ import {
   UsersRound,
 } from "lucide-react";
 import { SearchWidget } from "@/components/booking/SearchWidget";
-import {
-  HELPLINE_DISPLAY,
-  HELPLINE_TEL,
-  ServiceTabs,
-} from "@/components/layout/ServiceTabs";
+import { ServiceTabs } from "@/components/layout/ServiceTabs";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 
 const ROUTES = [
   { from: "Karachi", to: "Lahore", fromPrice: 4000 },

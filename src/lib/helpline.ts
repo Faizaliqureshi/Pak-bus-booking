@@ -1,0 +1,2 @@
+export const HELPLINE_DISPLAY = "021-111-172-782";
+export const HELPLINE_TEL = "021111172782";

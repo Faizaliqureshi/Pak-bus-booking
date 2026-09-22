@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getPublishedVisaService } from "@/lib/service-catalog";
 import { formatRs } from "@/lib/booking-utils";
 import { VisaInquiryForm } from "@/components/visa/VisaInquiryForm";
-import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/components/layout/ServiceTabs";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 
 export const dynamic = "force-dynamic";
 

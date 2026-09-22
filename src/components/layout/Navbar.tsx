@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Menu, Phone, Search, Ticket, UserRound, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/components/layout/ServiceTabs";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 import { cn } from "@/lib/utils";
 
 const NAV = [

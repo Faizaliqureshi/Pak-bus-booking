@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export const HELPLINE_DISPLAY = "021-111-172-782";
-export const HELPLINE_TEL = "021111172782";
+export { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 
 export const SERVICE_TABS = [
   {

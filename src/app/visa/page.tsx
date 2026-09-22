@@ -4,7 +4,7 @@ import { getPublishedVisaServices } from "@/lib/service-catalog";
 import { formatRs } from "@/lib/booking-utils";
 import { VisaInquiryForm } from "@/components/visa/VisaInquiryForm";
 import { BackToBuses } from "@/components/layout/PlaceholderMarketing";
-import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/components/layout/ServiceTabs";
+import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 
 export const dynamic = "force-dynamic";
 
