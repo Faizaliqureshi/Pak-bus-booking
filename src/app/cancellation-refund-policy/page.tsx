@@ -14,7 +14,7 @@ export default function CancellationRefundPolicyPage() {
       <p>
         Seat holds that expire before payment are released automatically and do
         not create a chargeable booking. For paid tickets, open Manage My Booking
-        or contact support@pakbus.com / helpline 021-111-172-782.
+        or contact support@ticketpass.pk / helpline 03123137349.
       </p>
       <p>
         Partial cancellations on multi-seat bookings may recalculate the remaining

@@ -1,3 +1,5 @@
+import { helplineWhatsAppHref } from "@/lib/helpline";
+
 export type UmrahPackage = {
   title: string;
   nights: string;
@@ -26,5 +28,6 @@ export const UMRAH_PACKAGES: UmrahPackage[] = [
   },
 ];
 
-export const UMRAH_WHATSAPP =
-  "https://wa.me/9221111172782?text=Assalam%20o%20Alaikum%2C%20I%20want%20Umrah%20package%20details%20on%20TicketPass";
+export const UMRAH_WHATSAPP = helplineWhatsAppHref(
+  "Assalam o Alaikum, I want Umrah package details on TicketPass",
+);

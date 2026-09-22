@@ -1,4 +1,9 @@
 import { StaticPage } from "@/components/layout/StaticPage";
+import {
+  HELPLINE_DISPLAY,
+  HELPLINE_TEL,
+  helplineWhatsAppHref,
+} from "@/lib/helpline";
 
 export default function ContactUsPage() {
   return (
@@ -8,14 +13,17 @@ export default function ContactUsPage() {
     >
       <p>
         <strong>Phone:</strong>{" "}
-        <a href="tel:03123137349" className="font-medium text-[#0a2f6b] underline">
-          0312 3137349
+        <a href={`tel:${HELPLINE_TEL}`} className="font-medium text-[#0a2f6b] underline">
+          {HELPLINE_DISPLAY}
         </a>
       </p>
       <p>
         <strong>WhatsApp:</strong>{" "}
-        <a href="https://wa.me/923123137349" className="font-medium text-[#0a2f6b] underline">
-          0312 3137349
+        <a
+          href={helplineWhatsAppHref("Assalam o Alaikum, I need TicketPass support")}
+          className="font-medium text-[#0a2f6b] underline"
+        >
+          {HELPLINE_DISPLAY}
         </a>
       </p>
       <p>
