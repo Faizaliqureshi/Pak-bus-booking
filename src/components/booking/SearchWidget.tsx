@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeftRight, CalendarDays, Search } from "lucide-react";
 import {
@@ -69,6 +69,22 @@ export function SearchWidget({
   const [destination, setDestination] = useState(defaultDestination);
   const [date, setDate] = useState(defaultDate ?? defaultTravelDate());
   const [error, setError] = useState<string | null>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  function openDatePicker() {
+    const input = dateInputRef.current;
+    if (!input) return;
+    try {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+        return;
+      }
+    } catch {
+      /* fall through */
+    }
+    input.focus();
+    input.click();
+  }
 
   const minDate = useMemo(() => todayIso(), []);
   const today = minDate;
@@ -114,6 +130,7 @@ export function SearchWidget({
             label="Leaving from"
             value={origin}
             onChange={setOrigin}
+            className="pl-5 pr-12"
           />
           <div className="border-l border-slate-200">
             <CityField
@@ -121,6 +138,7 @@ export function SearchWidget({
               label="Going to"
               value={destination}
               onChange={setDestination}
+              className="pl-12 pr-4"
             />
           </div>
           <button
@@ -134,23 +152,38 @@ export function SearchWidget({
           </button>
         </div>
 
-        <label className="relative flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-slate-200 bg-white px-4 py-2">
-          <span className="text-xs font-bold tracking-wide text-slate-500 uppercase">
-            Date
-          </span>
-          <span className="mt-0.5 flex items-center gap-2 text-base font-semibold text-slate-900">
-            <CalendarDays className="size-4 text-slate-500" />
-            {formatNaturalDate(date)}
-          </span>
+        <div className="relative min-h-14">
+          <button
+            type="button"
+            onClick={openDatePicker}
+            className="flex min-h-14 w-full cursor-pointer flex-col justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-left"
+          >
+            <span className="text-xs font-bold tracking-wide text-slate-500 uppercase">
+              Date
+            </span>
+            <span className="mt-0.5 flex items-center gap-2 text-base font-semibold text-slate-900">
+              <CalendarDays className="size-4 text-slate-500" />
+              {formatNaturalDate(date)}
+            </span>
+          </button>
           <input
+            ref={dateInputRef}
             id="date"
             type="date"
             min={minDate}
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="absolute inset-0 cursor-pointer opacity-0"
+            onPointerDown={(e) => {
+              try {
+                e.currentTarget.showPicker();
+              } catch {
+                /* native click still runs */
+              }
+            }}
+            className="absolute inset-0 z-10 cursor-pointer opacity-[0.01]"
+            aria-label={`Date ${formatNaturalDate(date)}`}
           />
-        </label>
+        </div>
 
         <button
           type="submit"
@@ -204,14 +237,21 @@ function CityField({
   label,
   value,
   onChange,
+  className,
 }: {
   id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
+  className?: string;
 }) {
   return (
-    <div className="flex min-h-14 flex-col justify-center px-4 py-2 pr-8">
+    <div
+      className={cn(
+        "flex min-h-14 flex-col justify-center py-2",
+        className,
+      )}
+    >
       <span className="text-xs font-bold tracking-wide text-slate-500 uppercase">
         {label}
       </span>

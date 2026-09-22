@@ -54,14 +54,13 @@ const ROUTES = [
 export default function HomePage() {
   return (
     <main className="bg-[#f3f6fb] text-[#0a2f6b]">
-      <section className="relative isolate min-h-[520px] overflow-hidden bg-[#061833] sm:min-h-[560px]">
+      <section className="relative isolate min-h-[520px] overflow-hidden bg-[#061833] sm:min-h-[560px] lg:min-h-[640px]">
         <div aria-hidden className="absolute inset-0 z-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/hero/travel-mosaic-bus.png"
             alt=""
-            className="h-full w-full object-cover"
-            style={{ objectPosition: "12% 38%" }}
+            className="h-full w-full object-cover object-[12%_28%] lg:object-[16%_10%]"
           />
         </div>
         <div
@@ -73,14 +72,14 @@ export default function HomePage() {
           className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-24 bg-gradient-to-b from-transparent to-[#f3f6fb]"
         />
 
-        <div className="relative z-10 mx-auto flex min-h-[520px] w-full max-w-6xl flex-col justify-end px-4 pb-8 pt-8 sm:min-h-[560px] sm:px-6 sm:pb-10 sm:pt-10">
+        <div className="relative z-10 mx-auto flex min-h-[520px] w-full max-w-6xl flex-col justify-end px-4 pb-8 pt-8 sm:min-h-[560px] sm:px-6 sm:pb-10 sm:pt-10 lg:min-h-[640px] lg:justify-center lg:pb-28 lg:pt-16">
           <div className="flex max-w-xl flex-col items-start [text-shadow:0_2px_16px_rgba(0,0,0,0.55)]">
             <h1 className="origin-left scale-x-[0.84] font-heading text-2xl font-semibold tracking-tighter text-white sm:text-3xl lg:text-4xl">
               One App for Every Journey
             </h1>
           </div>
 
-          <div className="mt-8 sm:mt-10">
+          <div className="mt-8 sm:mt-10 lg:mt-8">
             <ServiceTabs variant="hero" />
             <SearchWidget className="mt-1.5" />
           </div>
