@@ -38,16 +38,23 @@ export async function GET(
   }
 
   await provisionTripSeats(trip.id);
-  const seats = await prisma.tripSeat.findMany({
-    where: { tripId: trip.id },
-    orderBy: { seatNumber: "asc" },
-  });
+  const [seats, holds] = await Promise.all([
+    prisma.tripSeat.findMany({
+      where: { tripId: trip.id },
+      orderBy: { seatNumber: "asc" },
+    }),
+    prisma.partnerSeatHold.findMany({
+      where: { tripId: trip.id },
+      select: { seatNumber: true },
+    }),
+  ]);
+  const held = new Set(holds.map((h) => h.seatNumber));
 
   return NextResponse.json({
     success: true,
     data: seats.map((s) => ({
       seatNumber: s.seatNumber,
-      status: s.status,
+      status: held.has(s.seatNumber) ? "RESERVED" : s.status,
       bookingId: s.bookingId,
     })),
   });

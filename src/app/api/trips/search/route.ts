@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeCityForSearch } from "@/lib/booking-utils";
+import { averageRating, photoPublicUrl } from "@/lib/bus-catalog";
 
 export const runtime = "nodejs";
 
@@ -70,6 +71,20 @@ export async function GET(request: NextRequest) {
             operator: {
               select: { id: true, name: true },
             },
+            photos: {
+              select: { id: true },
+              orderBy: { sortOrder: "asc" },
+            },
+            reviews: {
+              select: {
+                id: true,
+                rating: true,
+                comment: true,
+                updatedAt: true,
+                user: { select: { name: true } },
+              },
+              orderBy: { updatedAt: "desc" },
+            },
           },
         },
         route: {
@@ -98,6 +113,16 @@ export async function GET(request: NextRequest) {
           busNumber: trip.bus.busNumber,
           layoutType: trip.bus.layoutType,
           totalSeats: trip.bus.totalSeats,
+          features: trip.bus.features,
+          photos: trip.bus.photos.map((p) => photoPublicUrl(p.id)),
+          rating: averageRating(trip.bus.reviews.map((r) => r.rating)),
+          reviews: trip.bus.reviews.slice(0, 5).map((r) => ({
+            id: r.id,
+            rating: r.rating,
+            comment: r.comment,
+            name: r.user.name,
+            updatedAt: r.updatedAt.toISOString(),
+          })),
         },
         operator: {
           id: trip.bus.operator.id,

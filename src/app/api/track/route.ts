@@ -173,6 +173,18 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      if (user.role === UserRole.CONDUCTOR) {
+        if (
+          !user.createdById ||
+          booking.trip.bus.operator.id !== user.createdById
+        ) {
+          return NextResponse.json(
+            { success: false, message: "Booking not found." },
+            { status: 404 },
+          );
+        }
+      }
+
       if (booking.paymentStatus !== PaymentStatus.PAID && !isStaff) {
         return NextResponse.json(
           {
@@ -214,7 +226,9 @@ export async function GET(request: NextRequest) {
           busNumber: { equals: busNumber, mode: "insensitive" },
           ...(user.role === UserRole.OPERATOR
             ? { operatorId: user.id }
-            : {}),
+            : user.role === UserRole.CONDUCTOR
+              ? { operatorId: user.createdById ?? "__none__" }
+              : {}),
         },
       });
 

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { PaymentStatus } from "@prisma/client";
 import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { CheckoutForm } from "@/components/booking/CheckoutForm";
+import { photoPublicUrl } from "@/lib/bus-catalog";
 import { parseHeldSeats } from "@/lib/checkout-utils";
 import { prisma } from "@/lib/prisma";
 
@@ -21,6 +22,10 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
           bus: {
             include: {
               operator: { select: { name: true } },
+              photos: {
+                select: { id: true },
+                orderBy: { sortOrder: "asc" },
+              },
             },
           },
           route: true,
@@ -76,6 +81,8 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
                 routeName: booking.trip.route.name,
                 originCity: booking.trip.route.originCity,
                 destinationCity: booking.trip.route.destinationCity,
+                features: booking.trip.bus.features,
+                photos: booking.trip.bus.photos.map((p) => photoPublicUrl(p.id)),
               },
               boardingStop: boardingStop
                 ? { id: boardingStop.id, name: boardingStop.stationName }

@@ -14,6 +14,15 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPkr, busTypeLabel } from "@/lib/booking-utils";
+import {
+  buildCoachRows,
+  buildSleeperDecks,
+  isSleeperLayout,
+  pairMate,
+  sleeperLabelFor,
+  type CoachRow,
+  type SleeperDeck,
+} from "@/lib/seat-layout";
 import { cn } from "@/lib/utils";
 
 const MAX_SEATS = 4;
@@ -21,6 +30,7 @@ const MAX_SEATS = 4;
 type ApiSeatStatus =
   | "AVAILABLE"
   | "BOOKED"
+  | "RESERVED"
   | "LOCKED_BY_YOU"
   | "LOCKED_BY_OTHER";
 
@@ -65,39 +75,6 @@ interface SelectedSeatState {
   gender: "MALE" | "FEMALE";
 }
 
-function buildRows(totalSeats: number, layoutType: string): string[][] {
-  const seats = Array.from({ length: totalSeats }, (_, i) => String(i + 1));
-  const isSleeper = layoutType.includes("2x1") || layoutType.includes("SLEEPER");
-  const perRow = isSleeper ? 2 : 4;
-  const rows: string[][] = [];
-  for (let i = 0; i < seats.length; i += perRow) {
-    rows.push(seats.slice(i, i + perRow));
-  }
-  return rows;
-}
-
-/** Side-by-side pair mate (aisle-adjacent seat), e.g. 12A ↔ 12B style pairing. */
-function getPairMate(
-  seatNumber: string,
-  rows: string[][],
-  isSleeper: boolean,
-): string | null {
-  for (const row of rows) {
-    if (isSleeper) {
-      // Sleeper berths are separated by aisle — no forced pair rule.
-      continue;
-    }
-    const pairs: [number, number][] = [
-      [0, 1],
-      [2, 3],
-    ];
-    for (const [a, b] of pairs) {
-      if (row[a] === seatNumber) return row[b] ?? null;
-      if (row[b] === seatNumber) return row[a] ?? null;
-    }
-  }
-  return null;
-}
 
 const FEMALE_ADJACENT_MSG =
   "Seat reserved for female passenger adjacent to another female traveler.";
@@ -111,6 +88,7 @@ function visualStatus(
     return selected.gender === "FEMALE" ? "SELECTED_FEMALE" : "SELECTED_MALE";
   }
   if (!seat) return "AVAILABLE";
+  if (seat.status === "RESERVED") return "LOCKED_BY_OTHER";
   if (seat.status === "BOOKED" && seat.gender === "FEMALE") {
     return "RESERVED_FEMALE";
   }
@@ -168,7 +146,7 @@ export function InteractiveSeatMap({
   const [now, setNow] = useState(() => Date.now());
   const router = useRouter();
 
-  const isSleeper = layoutType.includes("2x1") || layoutType.includes("SLEEPER");
+  const isSleeper = isSleeperLayout(layoutType);
   const unitPrice = Math.max(0, basePrice - dealDiscount);
 
   const fetchSeats = useCallback(async () => {
@@ -239,7 +217,7 @@ export function InteractiveSeatMap({
   }, [payload]);
 
   const rows = useMemo(
-    () => buildRows(payload?.totalSeats ?? 0, layoutType),
+    () => buildCoachRows(payload?.totalSeats ?? 0, layoutType),
     [payload?.totalSeats, layoutType],
   );
 
@@ -298,7 +276,7 @@ export function InteractiveSeatMap({
 
         // Pakistani cultural seating: male cannot take seat beside a female traveller.
         if (gender === "MALE") {
-          const mate = getPairMate(seatNumber, rows, isSleeper);
+          const mate = pairMate(seatNumber, rows, isSleeper);
           if (mate) {
             const mateApi = seatMap.get(mate);
             const mateSelected = selected.find((s) => s.seatNumber === mate);
@@ -463,10 +441,16 @@ export function InteractiveSeatMap({
               </button>
             </div>
           ) : (
-            <div className="mx-auto flex w-full max-w-md flex-col items-center gap-3">
+            <div
+              className={cn(
+                "mx-auto flex w-full flex-col items-center gap-3",
+                isSleeper ? "max-w-xl" : "max-w-md",
+              )}
+            >
               <p className="text-xs tracking-wide text-[#0a2f6b]/45 uppercase">
                 {operatorName ? `${operatorName} · ` : ""}
-                {busTypeLabel(layoutType)} · Lower deck
+                {busTypeLabel(layoutType)}
+                {isSleeper ? "" : " · Lower deck"}
               </p>
 
               <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-[#0a2f6b]/10 bg-white px-3 py-2 text-[11px] font-medium text-[#0a2f6b]/70">
@@ -479,47 +463,32 @@ export function InteractiveSeatMap({
                 <span className="rounded-md bg-[#0a2f6b]/8 px-2 py-1">Door</span>
               </div>
 
-              <div className="w-full space-y-2 rounded-xl border border-dashed border-[#0a2f6b]/15 bg-white/70 p-3">
-                {rows.map((row, rowIndex) => (
-                  <div
-                    key={`row-${rowIndex}`}
-                    className={cn(
-                      "grid items-center gap-2",
-                      isSleeper
-                        ? "grid-cols-[1fr_20px_1fr]"
-                        : "grid-cols-[1fr_1fr_20px_1fr_1fr]",
-                    )}
-                  >
-                    {(isSleeper ? [0, null, 1] : [0, 1, null, 2, 3]).map(
-                      (idx, i) =>
-                        idx === null ? (
-                          <div
-                            key={`aisle-${rowIndex}-${i}`}
-                            className="flex h-full min-h-9 w-full items-center justify-center rounded-full bg-[#0a2f6b]/5"
-                            title="Aisle"
-                          >
-                            <span className="text-[8px] tracking-tighter text-[#0a2f6b]/30">
-                              AISLE
-                            </span>
-                          </div>
-                        ) : (
-                          <SeatButton
-                            key={`${rowIndex}-${idx}`}
-                            seatNumber={row[idx]}
-                            status={visualStatus(
-                              seatMap.get(row[idx]),
-                              selected.find((s) => s.seatNumber === row[idx]),
-                              gender,
-                            )}
-                            busy={busySeat === row[idx]}
-                            onClick={() =>
-                              row[idx] && void toggleSeat(row[idx])
-                            }
-                          />
-                        ),
-                    )}
+              <div className="w-full rounded-xl bg-white p-4 sm:p-5">
+                {isSleeper ? (
+                  <SleeperDecksView
+                    decks={buildSleeperDecks(payload?.totalSeats ?? 0)}
+                    seatMap={seatMap}
+                    selected={selected}
+                    gender={gender}
+                    busySeat={busySeat}
+                    onToggle={(n) => void toggleSeat(n)}
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    {rows.map((row, rowIndex) => (
+                      <CoachRowView
+                        key={`row-${rowIndex}`}
+                        row={row}
+                        sleeper={false}
+                        seatMap={seatMap}
+                        selected={selected}
+                        gender={gender}
+                        busySeat={busySeat}
+                        onToggle={(n) => void toggleSeat(n)}
+                      />
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
 
               <div className="flex w-full items-center justify-center rounded-xl border border-[#0a2f6b]/10 bg-white px-3 py-2 text-[11px] font-medium text-[#0a2f6b]/70">
@@ -587,7 +556,10 @@ export function InteractiveSeatMap({
                       s.gender === "FEMALE" ? "bg-[#f48fb1]" : "bg-[#0a2f6b]",
                     )}
                   >
-                    {s.gender === "FEMALE" ? "F" : "M"}-{s.seatNumber}
+                    {s.gender === "FEMALE" ? "F" : "M"}-
+                    {isSleeper
+                      ? sleeperLabelFor(s.seatNumber, payload?.totalSeats ?? 0)
+                      : s.seatNumber}
                     <X className="size-3 opacity-80" />
                   </button>
                 ))
@@ -659,16 +631,141 @@ function Legend({
   );
 }
 
+function CoachRowView({
+  row,
+  sleeper,
+  seatMap,
+  selected,
+  gender,
+  busySeat,
+  onToggle,
+}: {
+  row: CoachRow;
+  sleeper: boolean;
+  seatMap: Map<string, ApiSeat>;
+  selected: SelectedSeatState[];
+  gender: "MALE" | "FEMALE";
+  busySeat: string | null;
+  onToggle: (seatNumber: string) => void;
+}) {
+  const renderSeat = (seatNumber: string | null, key: string) =>
+    seatNumber ? (
+      <SeatButton
+        key={key}
+        seatNumber={seatNumber}
+        circle={!sleeper}
+        status={visualStatus(
+          seatMap.get(seatNumber),
+          selected.find((s) => s.seatNumber === seatNumber),
+          gender,
+        )}
+        busy={busySeat === seatNumber}
+        onClick={() => onToggle(seatNumber)}
+      />
+    ) : (
+      <div key={key} />
+    );
+
+  if (row.fullWidth) {
+    return (
+      <div className="mx-auto grid w-full max-w-[280px] grid-cols-5 items-center justify-items-center gap-x-3 gap-y-2 sm:max-w-[320px]">
+        {row.seats.map((n, i) => renderSeat(n, `fw-${i}`))}
+      </div>
+    );
+  }
+
+  if (sleeper) {
+    return (
+      <div className="grid w-full grid-cols-[1fr_28px_1fr] items-center gap-2">
+        {renderSeat(row.seats[0], "l")}
+        <div />
+        {renderSeat(row.seats[1], "r")}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto grid w-full max-w-[280px] grid-cols-[32px_32px_40px_32px_32px] items-center justify-items-center gap-x-3 sm:max-w-[320px] sm:grid-cols-[36px_36px_48px_36px_36px]">
+      {renderSeat(row.seats[0], "lw")}
+      {renderSeat(row.seats[1], "la")}
+      <div aria-hidden />
+      {renderSeat(row.seats[2], "ra")}
+      {renderSeat(row.seats[3], "rw")}
+    </div>
+  );
+}
+
+function SleeperDecksView({
+  decks,
+  seatMap,
+  selected,
+  gender,
+  busySeat,
+  onToggle,
+}: {
+  decks: SleeperDeck[];
+  seatMap: Map<string, ApiSeat>;
+  selected: SelectedSeatState[];
+  gender: "MALE" | "FEMALE";
+  busySeat: string | null;
+  onToggle: (seatNumber: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-6 sm:gap-8">
+      {decks.map((deck) => (
+        <div key={deck.name} className="space-y-3">
+          <p className="text-center text-sm font-semibold text-[#0a2f6b]">
+            {deck.name}
+          </p>
+          <div className="space-y-3">
+            {deck.rows.map((row, i) => (
+              <div
+                key={`${deck.name}-${i}`}
+                className={cn(
+                  "mx-auto grid items-center justify-items-center gap-x-3",
+                  row.lastTriple
+                    ? "grid-cols-3 max-w-[140px]"
+                    : "grid-cols-2 max-w-[92px]",
+                )}
+              >
+                {row.berths.map((berth) => (
+                  <SeatButton
+                    key={berth.seatNumber}
+                    seatNumber={berth.seatNumber}
+                    label={berth.label}
+                    circle
+                    status={visualStatus(
+                      seatMap.get(berth.seatNumber),
+                      selected.find((s) => s.seatNumber === berth.seatNumber),
+                      gender,
+                    )}
+                    busy={busySeat === berth.seatNumber}
+                    onClick={() => onToggle(berth.seatNumber)}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function SeatButton({
   seatNumber,
   status,
   busy,
   onClick,
+  circle,
+  label,
 }: {
   seatNumber?: string;
   status: VisualSeatStatus;
   busy: boolean;
   onClick: () => void;
+  circle?: boolean;
+  label?: string;
 }) {
   if (!seatNumber) return <div />;
   const disabled =
@@ -676,8 +773,7 @@ function SeatButton({
     status === "RESERVED_FEMALE" ||
     status === "LOCKED_BY_OTHER" ||
     busy;
-  const selected =
-    status === "SELECTED_MALE" || status === "SELECTED_FEMALE";
+  const shown = label ?? seatNumber;
 
   return (
     <button
@@ -686,19 +782,16 @@ function SeatButton({
       onClick={onClick}
       data-testid={`seat-${seatNumber}`}
       className={cn(
-        "relative flex aspect-square w-full items-center justify-center rounded-md border text-xs font-semibold transition-all duration-150",
+        "relative flex items-center justify-center border text-xs font-semibold transition-all duration-150",
+        circle
+          ? "size-8 rounded-full sm:size-9"
+          : "aspect-square w-full rounded-md",
         seatClass(status),
         busy && "opacity-60",
       )}
-      aria-label={`Seat ${seatNumber}, ${status.toLowerCase().replaceAll("_", " ")}`}
+      aria-label={`Seat ${shown}, ${status.toLowerCase().replaceAll("_", " ")}`}
     >
-      {busy ? (
-        <Loader2 className="size-3.5 animate-spin" />
-      ) : selected ? (
-        <Check className="size-3.5" strokeWidth={3} />
-      ) : (
-        seatNumber
-      )}
+      {busy ? <Loader2 className="size-3.5 animate-spin" /> : shown}
     </button>
   );
 }

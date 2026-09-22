@@ -102,7 +102,7 @@ type OverviewData = {
   }>;
 };
 
-type StaffRole = "ADMIN" | "PARTNER" | "CONDUCTOR";
+type StaffRole = "ADMIN" | "PARTNER";
 
 type CreatedCreds = {
   roleLabel: string;
@@ -355,7 +355,6 @@ export default function MasterHomePage() {
                   [
                     ["ADMIN", "Platform staff"],
                     ["PARTNER", "Partner"],
-                    ["CONDUCTOR", "Conductor"],
                   ] as const
                 ).map(([value, label]) => (
                   <button
@@ -374,8 +373,8 @@ export default function MasterHomePage() {
                 ))}
               </div>
               <p className="text-xs text-[#0a2f6b]/55">
-                Platform staff use Master. Partners manage fleet. Conductors
-                see reservations and scan passengers onboard.
+                Platform staff use Master. Partners manage fleet and create
+                their own conductors.
               </p>
             </div>
 
@@ -431,12 +430,7 @@ export default function MasterHomePage() {
                 ) : (
                   <>
                     <Plus className="size-4" />
-                    Create{" "}
-                    {role === "ADMIN"
-                      ? "platform staff"
-                      : role === "PARTNER"
-                        ? "partner"
-                        : "conductor"}
+                    Create {role === "ADMIN" ? "platform staff" : "partner"}
                   </>
                 )}
               </Button>
@@ -609,6 +603,7 @@ export default function MasterHomePage() {
             value={formatPkr(finance.walletBalancesTotal)}
             hint={`${finance.walletAccounts} wallet accounts`}
           />
+          <PartnerPayoutForm partners={data.partners} />
           <Panel title="Accounts summary" className="sm:col-span-2 lg:col-span-3">
             <dl className="grid gap-3 px-4 py-4 text-sm sm:grid-cols-2">
               <div>
@@ -759,6 +754,99 @@ function StaffTable({
         </table>
       </div>
     </Panel>
+  );
+}
+
+function PartnerPayoutForm({
+  partners,
+}: {
+  partners: OverviewData["partners"];
+}) {
+  const [operatorId, setOperatorId] = useState(partners[0]?.id ?? "");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/master/payouts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          operatorId,
+          amount: Number(amount),
+          note: note || undefined,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Could not record payout.");
+      }
+      setMessage(`Cleared ${json.data.reference} to partner.`);
+      setAmount("");
+      setNote("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={(e) => void onSubmit(e)}
+      className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-4 shadow-sm sm:col-span-2 lg:col-span-3"
+    >
+      <p className="text-sm font-semibold text-[#0a2f6b]">
+        Record partner payout
+      </p>
+      <p className="mt-1 text-xs text-[#0a2f6b]/55">
+        Cleared transfers appear as received income on the partner Finance desk.
+      </p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-4">
+        <select
+          value={operatorId}
+          onChange={(e) => setOperatorId(e.target.value)}
+          className="h-10 rounded-md border border-[#d7dee8] bg-white px-3 text-sm"
+        >
+          {partners.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+        <Input
+          type="number"
+          min={1}
+          required
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Amount PKR"
+          className="h-10"
+        />
+        <Input
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Note (optional)"
+          className="h-10"
+        />
+        <Button
+          type="submit"
+          disabled={saving || !operatorId}
+          className="h-10 bg-[#0a2f6b] text-white hover:bg-[#08305f]"
+        >
+          {saving ? <Loader2 className="size-4 animate-spin" /> : "Mark cleared"}
+        </Button>
+      </div>
+      {error ? <p className="mt-2 text-sm text-red-700">{error}</p> : null}
+      {message ? <p className="mt-2 text-sm text-emerald-700">{message}</p> : null}
+    </form>
   );
 }
 

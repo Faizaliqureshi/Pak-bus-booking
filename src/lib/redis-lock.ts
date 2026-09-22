@@ -70,6 +70,17 @@ export async function lockSeat(
     };
   }
 
+  const hold = await prisma.partnerSeatHold.findUnique({
+    where: { tripId_seatNumber: { tripId, seatNumber } },
+    select: { id: true },
+  });
+  if (hold) {
+    return {
+      success: false,
+      message: "Seat is reserved by the operator.",
+    };
+  }
+
   const redis = getRedis();
   const key = buildSeatLockKey(tripId, seatNumber);
 

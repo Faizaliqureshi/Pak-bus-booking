@@ -21,12 +21,13 @@ export default function MasterSettingsPage() {
             (MASTER or ADMIN).
           </p>
           <p>
-            <strong>Partner</strong> (`/partner/fleet`) — operator fleet
-            (OPERATOR).
+            <strong>Partner</strong> (`/partner/fleet`) — fleet, live seats,
+            paid bookings, finance, and conductors (OPERATOR).
           </p>
           <p>
-            <strong>Conductor</strong> (`/conductor`) — reservations list and
-            onboard QR/PNR scan (CONDUCTOR).
+            <strong>Conductor</strong> (`/conductor`) — works only under the
+            partner who created them: reservations, QR/PNR scan, and fleet
+            track.
           </p>
           <p>
             <strong>Passenger</strong> (

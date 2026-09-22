@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentStatus } from "@prisma/client";
 import { getConductorUser } from "@/lib/admin-auth";
+import { partnerIdForConductor } from "@/lib/conductor-scope";
 import { maskCnic, parseTicketQr } from "@/lib/checkout-utils";
 import { prisma } from "@/lib/prisma";
 
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
           include: {
             bus: {
               include: {
-                operator: { select: { name: true } },
+                operator: { select: { id: true, name: true } },
               },
             },
             route: true,
@@ -101,6 +102,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         valid: false,
         reason: "Ticket does not belong to this trip",
+      });
+    }
+
+    const partnerId = partnerIdForConductor(conductor);
+    if (!partnerId || booking.trip.bus.operator.id !== partnerId) {
+      return NextResponse.json({
+        valid: false,
+        reason: "Ticket is not on your partner fleet",
       });
     }
 

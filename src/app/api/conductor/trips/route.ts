@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { PaymentStatus } from "@prisma/client";
 import { getConductorUser } from "@/lib/admin-auth";
+import {
+  conductorFleetWhere,
+  partnerIdForConductor,
+} from "@/lib/conductor-scope";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -20,9 +24,11 @@ export async function GET() {
   const to = new Date();
   to.setDate(to.getDate() + 7);
 
+  const partnerId = partnerIdForConductor(conductor);
   const trips = await prisma.trip.findMany({
     where: {
       departureTime: { gte: from, lte: to },
+      ...conductorFleetWhere(partnerId),
     },
     orderBy: { departureTime: "asc" },
     include: {

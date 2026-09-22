@@ -9,6 +9,16 @@ export interface TripSearchResult {
     busNumber: string;
     layoutType: string;
     totalSeats: number;
+    features?: string[];
+    photos?: string[];
+    rating?: { average: number; count: number };
+    reviews?: {
+      id: string;
+      rating: number;
+      comment: string | null;
+      name: string;
+      updatedAt: string;
+    }[];
   };
   operator: { id: string; name: string };
   route: {

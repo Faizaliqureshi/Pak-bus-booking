@@ -5,6 +5,7 @@ import { getActiveLocksForTrip } from "@/lib/redis-lock";
 export type SeatStatus =
   | "AVAILABLE"
   | "BOOKED"
+  | "RESERVED"
   | "LOCKED_BY_YOU"
   | "LOCKED_BY_OTHER";
 
@@ -90,7 +91,7 @@ export async function getAvailableSeatsForSegment(
     );
   }
 
-  const [tickets, redisLocks, inventory] = await Promise.all([
+  const [tickets, redisLocks, inventory, holds] = await Promise.all([
     prisma.ticket.findMany({
       where: {
         booking: {
@@ -103,14 +104,24 @@ export async function getAvailableSeatsForSegment(
         dropStop: true,
       },
     }),
-    getActiveLocksForTrip(tripId),
+    Promise.race([
+      getActiveLocksForTrip(tripId),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("lock scan timeout")), 1500),
+      ),
+    ]).catch(() => []),
     prisma.tripSeat.findMany({
       where: { tripId, status: TripSeatStatus.BOOKED },
+      select: { seatNumber: true },
+    }),
+    prisma.partnerSeatHold.findMany({
+      where: { tripId },
       select: { seatNumber: true },
     }),
   ]);
 
   const partnerBooked = new Set(inventory.map((s) => s.seatNumber));
+  const partnerHeld = new Set(holds.map((s) => s.seatNumber));
 
   const lockBySeat = new Map(
     redisLocks.map((lock) => [lock.seatNumber, lock.userId]),
@@ -124,6 +135,16 @@ export async function getAvailableSeatsForSegment(
 
     if (partnerBooked.has(seatNumber)) {
       seats.push({ seatNumber, status: "BOOKED" });
+      continue;
+    }
+
+    if (partnerHeld.has(seatNumber)) {
+      seats.push({ seatNumber, status: "RESERVED" });
+      continue;
+    }
+
+    if (partnerHeld.has(seatNumber)) {
+      seats.push({ seatNumber, status: "RESERVED" });
       continue;
     }
 

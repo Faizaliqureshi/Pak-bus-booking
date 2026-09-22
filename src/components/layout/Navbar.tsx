@@ -112,10 +112,8 @@ export function Navbar() {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/master") ||
     pathname.startsWith("/staff") ||
-    pathname.startsWith("/partner/fleet") ||
-    pathname.startsWith("/partner/api") ||
-    pathname.startsWith("/partner/track") ||
-    pathname.startsWith("/partner/routes") ||
+    (pathname.startsWith("/partner") &&
+      !pathname.startsWith("/partner/register")) ||
     pathname.startsWith("/conductor")
   ) {
     return null;

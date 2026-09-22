@@ -39,12 +39,21 @@ export default async function PartnerPortalLayout({
             <TicketPassLogo tone="light" size="sm" suffix="Partner" />
             <p className="text-xs text-[#0a2f6b]/55">{partner.name}</p>
           </div>
-          <nav className="flex gap-4 text-sm">
+          <nav className="flex flex-wrap justify-end gap-x-4 gap-y-1 text-sm">
             <Link href="/partner/fleet" className="font-medium hover:underline">
               Fleet
             </Link>
             <Link href="/partner/routes" className="hover:underline">
               Live routes
+            </Link>
+            <Link href="/partner/bookings" className="hover:underline">
+              Bookings
+            </Link>
+            <Link href="/partner/finance" className="hover:underline">
+              Finance
+            </Link>
+            <Link href="/partner/conductors" className="hover:underline">
+              Conductors
             </Link>
             <Link href="/partner/track" className="hover:underline">
               Track Bus

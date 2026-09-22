@@ -31,7 +31,18 @@ export async function GET() {
         trip: {
           include: {
             bus: {
-              include: { operator: { select: { name: true } } },
+              include: {
+                operator: { select: { name: true } },
+                reviews: {
+                  where: { userId: session.id },
+                  select: {
+                    rating: true,
+                    comment: true,
+                    updatedAt: true,
+                  },
+                  take: 1,
+                },
+              },
             },
             route: {
               select: { originCity: true, destinationCity: true, name: true },
@@ -60,10 +71,18 @@ export async function GET() {
         originCode: cityCode(b.trip.route.originCity),
         destinationCode: cityCode(b.trip.route.destinationCity),
         operatorName: operatorLabel(b.trip.bus.operator.name),
+        busId: b.trip.bus.id,
         busNumber: b.trip.bus.busNumber,
         routeName: b.trip.route.name,
         issued,
         expired,
+        review: b.trip.bus.reviews[0]
+          ? {
+              rating: b.trip.bus.reviews[0].rating,
+              comment: b.trip.bus.reviews[0].comment,
+              updatedAt: b.trip.bus.reviews[0].updatedAt.toISOString(),
+            }
+          : null,
       };
     });
 

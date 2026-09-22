@@ -69,6 +69,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const hold = await prisma.partnerSeatHold.findUnique({
+      where: { tripId_seatNumber: { tripId: trip, seatNumber: seat } },
+      select: { id: true },
+    });
+    if (hold) {
+      return NextResponse.json(
+        { success: false, message: "Seat is reserved by the operator." },
+        { status: 409 },
+      );
+    }
+
     const key = bookingSeatLockKey(trip, seat);
     const redis = getUpstashRedis();
 

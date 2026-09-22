@@ -78,6 +78,9 @@ model User {
   rewards          RewardsAccount?
   apiKeys          PartnerApiKey[]
   partnerWebhook   PartnerWebhook?
+  busReviews       BusReview[]
+  seatHolds        PartnerSeatHold[]
+  payouts          PartnerPayout[]
 
   @@index([role])
   @@index([createdById])
@@ -93,14 +96,52 @@ model Bus {
   totalSeats Int
   /// Partner GDS / own-system vehicle id (unique per operator).
   externalId String?
+  /// Partner-set facilities shown to passengers (e.g. Wi-Fi, AC).
+  features   String[] @default([])
   createdAt  DateTime @default(now())
 
-  operator User   @relation("BusOperator", fields: [operatorId], references: [id], onDelete: Restrict)
+  operator User        @relation("BusOperator", fields: [operatorId], references: [id], onDelete: Restrict)
   trips    Trip[]
+  photos   BusPhoto[]
+  reviews  BusReview[]
 
   @@unique([operatorId, externalId])
   @@index([operatorId])
   @@map("buses")
+}
+
+/// Coach photos uploaded by the partner. Served via /api/bus-photos/:id.
+model BusPhoto {
+  id        String   @id @default(cuid())
+  busId     String
+  mimeType  String
+  data      Bytes
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  bus Bus @relation(fields: [busId], references: [id], onDelete: Cascade)
+
+  @@index([busId, sortOrder])
+  @@map("bus_photos")
+}
+
+/// One review per passenger per bus. Only paid bookings may write.
+model BusReview {
+  id        String   @id @default(cuid())
+  busId     String
+  userId    String
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bus  Bus  @relation(fields: [busId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, busId])
+  @@index([busId])
+  @@index([userId])
+  @@map("bus_reviews")
 }
 
 model Route {
@@ -157,6 +198,7 @@ model Trip {
   seatLocks SeatLock[]
   seats     TripSeat[]
   bookings  Booking[]
+  seatHolds PartnerSeatHold[]
 
   @@unique([busId, externalId])
   @@index([busId])
@@ -261,6 +303,41 @@ model TripSeat {
   @@index([bookingId])
   @@index([lockedByUserId])
   @@map("trip_seats")
+}
+
+/// Partner-held seats on a live trip. Not sold on TicketPass.
+model PartnerSeatHold {
+  id         String   @id @default(cuid())
+  tripId     String
+  operatorId String
+  seatNumber String
+  note       String?
+  createdAt  DateTime @default(now())
+
+  trip     Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  operator User @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, seatNumber])
+  @@index([operatorId])
+  @@map("partner_seat_holds")
+}
+
+/// TicketPass payouts recorded to a partner (cleared / received).
+model PartnerPayout {
+  id         String    @id @default(cuid())
+  operatorId String
+  amount     Decimal
+  /// PENDING | CLEARED
+  status     String    @default("CLEARED")
+  reference  String    @unique
+  note       String?
+  clearedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  operator User @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  @@index([operatorId, status])
+  @@map("partner_payouts")
 }
 
 /// PSP fee schedule. Booking.paymentMethod stays as the wallet/code the passenger picked.

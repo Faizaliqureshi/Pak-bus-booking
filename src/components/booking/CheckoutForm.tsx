@@ -51,6 +51,8 @@ export interface CheckoutBookingView {
     routeName: string;
     originCity: string;
     destinationCity: string;
+    photos?: string[];
+    features?: string[];
   };
   boardingStop: { id: string; name: string } | null;
   dropStop: { id: string; name: string } | null;
@@ -270,6 +272,37 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
                 {booking.trip.busNumber}
               </dd>
             </div>
+            {booking.trip.features && booking.trip.features.length > 0 ? (
+              <div className="sm:col-span-2">
+                <dt className="text-[#0a2f6b]/55">Facilities</dt>
+                <dd className="mt-1 flex flex-wrap gap-1.5">
+                  {booking.trip.features.map((feature) => (
+                    <span
+                      key={feature}
+                      className="rounded-full border border-[#d7dee8] bg-[#f8fafc] px-2.5 py-0.5 text-xs text-[#0a2f6b]"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </dd>
+              </div>
+            ) : null}
+            {booking.trip.photos && booking.trip.photos.length > 0 ? (
+              <div className="sm:col-span-2">
+                <dt className="mb-1.5 text-[#0a2f6b]/55">Bus pictures</dt>
+                <dd className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {booking.trip.photos.map((src) => (
+                    <div
+                      key={src}
+                      className="aspect-[4/3] overflow-hidden rounded-lg border border-[#e5e7eb]"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="" className="size-full object-cover" />
+                    </div>
+                  ))}
+                </dd>
+              </div>
+            ) : null}
             <div>
               <dt className="text-[#0a2f6b]/55">Route</dt>
               <dd className="font-medium text-[#0a2f6b]">

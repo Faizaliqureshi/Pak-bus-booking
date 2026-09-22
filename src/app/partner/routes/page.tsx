@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Loader2, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -394,13 +395,14 @@ export default function PartnerRoutesPage() {
                   <th className="px-4 py-3">Bus</th>
                   <th className="px-4 py-3">Departure</th>
                   <th className="px-4 py-3">Fare</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
                 {trips.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="px-4 py-8 text-center text-[#0a2f6b]/50"
                     >
                       No live trips yet — publish one above or via the Partner
@@ -423,6 +425,14 @@ export default function PartnerRoutesPage() {
                         {formatTime(t.departureTime)}
                       </td>
                       <td className="px-4 py-3">{formatPkr(t.basePrice)}</td>
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/partner/trips/${t.id}`}
+                          className="text-xs font-medium text-[#0a2f6b] underline-offset-2 hover:underline"
+                        >
+                          Seats & bookings
+                        </Link>
+                      </td>
                     </tr>
                   ))
                 )}

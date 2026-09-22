@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PaymentStatus } from "@prisma/client";
 import { getConductorUser } from "@/lib/admin-auth";
+import { conductorOwnsTrip } from "@/lib/conductor-scope";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -17,6 +18,12 @@ export async function GET(_request: NextRequest, context: RouteContext) {
   }
 
   const { tripId } = await context.params;
+  if (!(await conductorOwnsTrip(conductor, tripId))) {
+    return NextResponse.json(
+      { success: false, message: "Trip not found." },
+      { status: 404 },
+    );
+  }
 
   const trip = await prisma.trip.findUnique({
     where: { id: tripId },

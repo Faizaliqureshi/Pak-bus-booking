@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Bus, CheckCircle2, Download, FileText, Loader2, Search } from "lucide-react";
 import { formatCardDate, formatTime } from "@/lib/booking-utils";
 import { Input } from "@/components/ui/input";
+import { BusReviewForm } from "@/components/account/BusReviewForm";
 
 export type AccountBooking = {
   id: string;
@@ -20,10 +21,12 @@ export type AccountBooking = {
   originCode: string;
   destinationCode: string;
   operatorName: string;
+  busId: string;
   busNumber: string;
   routeName: string;
   issued: boolean;
   expired: boolean;
+  review: { rating: number; comment: string | null } | null;
 };
 
 export function AccountBookingList({
@@ -115,7 +118,18 @@ export function AccountBookingList({
       ) : (
         <ul className="mt-5 space-y-4">
           {filtered.map((b) => (
-            <BookingCard key={b.id} booking={b} mode={mode} />
+            <BookingCard
+              key={b.id}
+              booking={b}
+              mode={mode}
+              onReviewSaved={(review) =>
+                setBookings((prev) =>
+                  prev.map((row) =>
+                    row.busId === b.busId ? { ...row, review } : row,
+                  ),
+                )
+              }
+            />
           ))}
         </ul>
       )}
@@ -126,9 +140,11 @@ export function AccountBookingList({
 function BookingCard({
   booking,
   mode,
+  onReviewSaved,
 }: {
   booking: AccountBooking;
   mode: "all" | "issued";
+  onReviewSaved: (review: { rating: number; comment: string | null }) => void;
 }) {
   const issued = booking.issued;
   const showExpired = mode === "all" && booking.expired && issued;
@@ -230,6 +246,14 @@ function BookingCard({
           )}
         </div>
       </div>
+      {issued ? (
+        <BusReviewForm
+          busId={booking.busId}
+          busNumber={booking.busNumber}
+          initial={booking.review}
+          onSaved={onReviewSaved}
+        />
+      ) : null}
     </li>
   );
 }

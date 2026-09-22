@@ -86,6 +86,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const held = await prisma.partnerSeatHold.findMany({
+      where: { tripId: tripId.trim(), seatNumber: { in: seats } },
+      select: { seatNumber: true },
+    });
+    if (held.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Seat ${held.map((h) => h.seatNumber).join(", ")} is reserved by the operator.`,
+        },
+        { status: 409 },
+      );
+    }
+
     const redis = getRedis();
     const lockExpiryCandidates: number[] = [];
 
