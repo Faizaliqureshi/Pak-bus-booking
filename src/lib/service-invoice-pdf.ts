@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { PaymentStatus } from "@prisma/client";
+import { drawInvoiceBankDetails } from "@/lib/invoice-bank";
 
 const NAVY = rgb(10 / 255, 47 / 255, 107 / 255);
 const GOLD = rgb(245 / 255, 166 / 255, 35 / 255);
@@ -110,6 +111,18 @@ export async function buildServiceInvoicePdf(order: {
     pdfSafe(`Method ${order.paymentMethod ?? (paid ? "DESK" : "Pending")}`),
     { x: 48, y, size: 9, font, color: MUTED },
   );
+  y -= 36;
+  if (!paid) {
+    page.drawText("Transfer the amount due to the account below.", {
+      x: 48,
+      y,
+      size: 9,
+      font,
+      color: MUTED,
+    });
+    y -= 18;
+  }
+  drawInvoiceBankDetails(page, font, bold, y);
 
   page.drawText(
     "This invoice is for TicketPass visa, Umrah, or holiday services. Not a bus ticket.",

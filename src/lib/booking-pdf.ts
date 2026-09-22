@@ -3,6 +3,7 @@ import QRCode from "qrcode";
 import type { BookingDocument } from "@/lib/booking-documents";
 import { formatTime } from "@/lib/booking-utils";
 import { maskCnic } from "@/lib/checkout-utils";
+import { drawInvoiceBankDetails } from "@/lib/invoice-bank";
 
 const NAVY = rgb(10 / 255, 47 / 255, 107 / 255);
 const GOLD = rgb(245 / 255, 166 / 255, 35 / 255);
@@ -370,6 +371,9 @@ export async function buildInvoicePdf(doc: BookingDocument): Promise<Uint8Array>
     });
     y -= 14;
   }
+
+  y -= 20;
+  drawInvoiceBankDetails(page, font, bold, Math.max(y, 168));
 
   page.drawLine({
     start: { x: 48, y: 72 },
