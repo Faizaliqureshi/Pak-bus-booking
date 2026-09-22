@@ -68,7 +68,7 @@ export function NotifyForm({
       </div>
       <Button
         type="submit"
-        className="h-11 bg-[#FF5A1F] text-white hover:bg-[#e84e16]"
+        className="h-11 bg-[#F5A623] text-[#0A2F6B] hover:bg-[#e09415]"
       >
         Notify me
       </Button>
@@ -189,7 +189,7 @@ export function BackToBuses() {
   return (
     <p className="mt-8 text-sm text-[#0a2f6b]/65">
       Looking for buses today?{" "}
-      <Link href="/" className="font-semibold text-[#FF5A1F] hover:underline">
+      <Link href="/" className="font-semibold text-[#F5A623] hover:underline">
         Search TicketPass buses
       </Link>
     </p>

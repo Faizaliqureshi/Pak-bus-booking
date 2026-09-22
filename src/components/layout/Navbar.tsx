@@ -170,15 +170,15 @@ export function Navbar() {
             ) : null}
           </div>
 
-          <Link href="/" className="truncate">
+          <Link href="/" className="inline-flex h-8 w-auto shrink-0 items-center">
             <TicketPassLogo tone="light" size="sm" />
           </Link>
         </div>
 
-        <div className="relative flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+        <div className="relative flex shrink-0 items-center gap-1.5 sm:gap-2">
           <a
             href={`tel:${HELPLINE_TEL}`}
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#0a2f6b]/5 px-2.5 py-1.5 text-xs font-semibold text-[#0a2f6b] sm:px-3"
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:px-3"
             title="Customer Support Helpline"
           >
             <Phone className="size-3.5 shrink-0" />
@@ -188,7 +188,7 @@ export function Navbar() {
 
           <Link
             href="/account/bookings"
-            className="hidden items-center gap-1.5 rounded-full border border-[#0a2f6b]/15 px-3 py-1.5 text-xs font-semibold text-[#0a2f6b] hover:bg-[#f3f6fb] sm:inline-flex"
+            className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:inline-flex"
           >
             <Ticket className="size-3.5" />
             Manage My Booking
@@ -196,14 +196,16 @@ export function Navbar() {
 
           <button
             type="button"
-            className="hidden items-center gap-1.5 text-sm font-medium text-[#0a2f6b] xl:inline-flex"
+            className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 xl:inline-flex"
             aria-label="Currency PKR"
           >
-            <span className="text-base leading-none" aria-hidden>
+            <span className="text-sm leading-none" aria-hidden>
               🇵🇰
             </span>
-            PKR
-            <ChevronDown className="size-3.5 opacity-60" />
+            <span>PK</span>
+            <span className="text-slate-400">·</span>
+            <span>PKR</span>
+            <ChevronDown className="size-3.5 text-slate-400" />
           </button>
 
           {user ? (
@@ -262,7 +264,7 @@ export function Navbar() {
           ) : (
             <Link
               href="/auth/sign-in"
-              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#0a2f6b] px-3 text-xs font-semibold text-white hover:bg-[#08305f]"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[#0a2f6b] px-3 text-xs font-semibold text-white transition hover:bg-[#08305f]"
             >
               <UserRound className="size-3.5" />
               Sign In

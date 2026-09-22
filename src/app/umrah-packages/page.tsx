@@ -41,7 +41,7 @@ export default function UmrahPackagesPage() {
               {pkg.title}
             </h2>
             <p className="mt-1 text-sm text-[#0a2f6b]/65">{pkg.nights}</p>
-            <p className="mt-3 font-semibold text-[#FF5A1F]">From {pkg.from}</p>
+            <p className="mt-3 font-semibold text-[#F5A623]">From {pkg.from}</p>
             <a
               href={UMRAH_WHATSAPP}
               target="_blank"

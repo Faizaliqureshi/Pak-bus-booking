@@ -4,7 +4,7 @@ import type { BookingDocument } from "@/lib/booking-documents";
 import { formatTime } from "@/lib/booking-utils";
 import { maskCnic } from "@/lib/checkout-utils";
 import { HELPLINE_DISPLAY } from "@/lib/helpline";
-import { drawInvoiceBankDetails } from "@/lib/invoice-bank";
+import { buildBrandedInvoicePdf } from "@/lib/invoice-layout";
 
 const NAVY = rgb(10 / 255, 47 / 255, 107 / 255);
 const GOLD = rgb(245 / 255, 166 / 255, 35 / 255);
@@ -26,14 +26,6 @@ function pdfSafe(text: string): string {
     .replace(/·/g, "|")
     .replace(/\u00A0/g, " ")
     .replace(/[^\x20-\x7E]/g, "?");
-}
-
-function issuedDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
 }
 
 function travelDate(iso: string): string {
@@ -224,184 +216,37 @@ export async function buildETicketPdf(doc: BookingDocument): Promise<Uint8Array>
 }
 
 export async function buildInvoicePdf(doc: BookingDocument): Promise<Uint8Array> {
-  const pdf = await PDFDocument.create();
-  const font = await pdf.embedFont(StandardFonts.Helvetica);
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const page = pdf.addPage([595, 842]);
-  const { width, height } = page.getSize();
-
-  await drawHeader(page, font, bold, "TAX INVOICE", doc.invoiceNumber);
-
-  let y = height - 128;
-  page.drawText("Billed to", { x: 48, y, size: 8, font: bold, color: MUTED });
-  page.drawText("Issued", { x: 320, y, size: 8, font: bold, color: MUTED });
-  y -= 16;
-  const billedName = pdfSafe(doc.passengers[0]?.name ?? "Passenger");
-  page.drawText(billedName, { x: 48, y, size: 12, font: bold, color: INK });
-  page.drawText(pdfSafe(issuedDate(doc.issuedAt)), {
-    x: 320,
-    y,
-    size: 11,
-    font,
-    color: INK,
-  });
-  y -= 14;
-  page.drawText(pdfSafe(doc.contactEmail ?? "-"), { x: 48, y, size: 10, font, color: MUTED });
-  y -= 12;
-  page.drawText(pdfSafe(doc.contactPhone ?? "-"), { x: 48, y, size: 10, font, color: MUTED });
-
-  y -= 28;
-  page.drawText("From", { x: 48, y, size: 8, font: bold, color: MUTED });
-  page.drawText("TicketPass Technologies (Private) Limited", {
-    x: 48,
-    y: y - 14,
-    size: 10,
-    font,
-    color: INK,
-  });
-  page.drawText("Online travel marketplace | Pakistan", {
-    x: 48,
-    y: y - 28,
-    size: 9,
-    font,
-    color: MUTED,
-  });
-
-  y -= 56;
-  page.drawRectangle({
-    x: 48,
-    y: y - 6,
-    width: width - 96,
-    height: 22,
-    color: rgb(243 / 255, 246 / 255, 251 / 255),
-  });
-  page.drawText("Description", { x: 56, y, size: 9, font: bold, color: MUTED });
-  page.drawText("Amount", {
-    x: width - 56 - bold.widthOfTextAtSize("Amount", 9),
-    y,
-    size: 9,
-    font: bold,
-    color: MUTED,
-  });
-
-  y -= 28;
-  page.drawText(
-    pdfSafe(`Intercity bus · ${doc.originCity} to ${doc.destinationCity}`),
-    {
-      x: 56,
-      y,
-      size: 11,
-      font: bold,
-      color: INK,
-    },
-  );
-  const fareText = money(doc.fare.baseFare);
-  page.drawText(fareText, {
-    x: width - 56 - font.widthOfTextAtSize(fareText, 11),
-    y,
-    size: 11,
-    font,
-    color: INK,
-  });
-  y -= 14;
-  page.drawText(
-    pdfSafe(
-      `${doc.operatorName} · ${doc.busNumber} · Seats ${doc.passengers
-        .map((p) => p.seatNumber)
-        .join(", ")}`,
-    ),
-    { x: 56, y, size: 9, font, color: MUTED },
-  );
-  y -= 12;
-  page.drawText(pdfSafe(`Travel ${travelDate(doc.departureTime)}`), {
-    x: 56,
-    y,
-    size: 9,
-    font,
-    color: MUTED,
-  });
-
+  const notes = [
+    `PNR ${doc.pnr}`,
+    `${doc.operatorName} | ${doc.busNumber} | Seats ${doc.passengers
+      .map((p) => p.seatNumber)
+      .join(", ")}`,
+    `Travel ${travelDate(doc.departureTime)}`,
+    ...doc.passengers.map((p) => `${p.name}  |  Seat ${p.seatNumber}`),
+  ];
   if (doc.fare.flatFee > 0 || doc.fare.percentageAmount > 0) {
-    y -= 22;
-    page.drawText(
-      pdfSafe(
-        `Payment gateway fee (${doc.fare.gatewayName ?? "PSP"}${
-          doc.fare.percentageFee > 0 ? ` ${doc.fare.percentageFee}%` : ""
-        })`,
-      ),
-      { x: 56, y, size: 10, font, color: INK },
+    notes.splice(
+      1,
+      0,
+      `Includes gateway fee ${money(doc.fare.flatFee + doc.fare.percentageAmount)} (${
+        doc.fare.gatewayName ?? "PSP"
+      })`,
     );
-    const feeText = money(doc.fare.flatFee + doc.fare.percentageAmount);
-    page.drawText(feeText, {
-      x: width - 56 - font.widthOfTextAtSize(feeText, 10),
-      y,
-      size: 10,
-      font,
-      color: INK,
-    });
   }
 
-  y -= 28;
-  page.drawLine({
-    start: { x: 48, y: y + 10 },
-    end: { x: width - 48, y: y + 10 },
-    thickness: 1,
-    color: LINE,
+  return buildBrandedInvoicePdf({
+    title: "TAX INVOICE",
+    reference: doc.invoiceNumber,
+    billedName: doc.passengers[0]?.name ?? "Passenger",
+    billedPhone: doc.contactPhone ?? "-",
+    billedEmail: doc.contactEmail,
+    paid: true,
+    serviceLine: `BUS | ${doc.originCity} to ${doc.destinationCity}`,
+    serviceDetail: doc.routeName,
+    amountPkr: doc.fare.totalPaid,
+    issuedAt: new Date(doc.issuedAt),
+    notes,
   });
-  page.drawText("Total paid", { x: 56, y, size: 12, font: bold, color: NAVY });
-  const totalText = money(doc.fare.totalPaid);
-  page.drawText(totalText, {
-    x: width - 56 - bold.widthOfTextAtSize(totalText, 14),
-    y,
-    size: 14,
-    font: bold,
-    color: NAVY,
-  });
-
-  y -= 36;
-  page.drawText(pdfSafe(`PNR ${doc.pnr}`), { x: 56, y, size: 10, font: bold, color: INK });
-  y -= 14;
-  page.drawText(
-    pdfSafe(`Paid via ${doc.paymentMethod?.replace("_", " / ") ?? "-"}`),
-    { x: 56, y, size: 10, font, color: MUTED },
-  );
-
-  y -= 40;
-  page.drawText("Passengers", { x: 56, y, size: 8, font: bold, color: MUTED });
-  y -= 16;
-  for (const p of doc.passengers) {
-    page.drawText(pdfSafe(`${p.name}  ·  Seat ${p.seatNumber}`), {
-      x: 56,
-      y,
-      size: 10,
-      font,
-      color: INK,
-    });
-    y -= 14;
-  }
-
-  y -= 20;
-  drawInvoiceBankDetails(page, font, bold, Math.max(y, 168));
-
-  page.drawLine({
-    start: { x: 48, y: 72 },
-    end: { x: width - 48, y: 72 },
-    thickness: 1,
-    color: LINE,
-  });
-  page.drawText(
-    "This invoice is for the TicketPass booking platform. Carriage is provided by the listed operator.",
-    { x: 48, y: 52, size: 8, font, color: MUTED },
-  );
-  page.drawText(`Helpline / WhatsApp ${HELPLINE_DISPLAY}  |  support@ticketpass.pk`, {
-    x: 48,
-    y: 38,
-    size: 8,
-    font,
-    color: MUTED,
-  });
-
-  return pdf.save();
 }
 
 export function pdfResponse(bytes: Uint8Array, filename: string): Response {

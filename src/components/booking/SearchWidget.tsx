@@ -2,10 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeftRight, BusFront, CalendarDays, MapPin } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ArrowLeftRight, CalendarDays, Search } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -36,6 +33,28 @@ function tomorrowIso(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   return toDateInputValue(d);
+}
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
+function formatNaturalDate(iso: string): string {
+  const parsed = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return `${WEEKDAYS[parsed.getDay()]}, ${parsed.getDate()} ${MONTHS[parsed.getMonth()]}`;
 }
 
 export function SearchWidget({
@@ -83,110 +102,68 @@ export function SearchWidget({
     <form
       onSubmit={onSearch}
       className={cn(
-        "w-full rounded-2xl border border-[#0a2f6b]/8 bg-[#eef2f8] p-4 shadow-[0_24px_60px_-28px_rgba(8,30,70,0.55)] sm:p-5",
-        compact && "border-[#0a2f6b]/10 bg-white shadow-sm",
+        "w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xl",
+        compact && "shadow-md",
         className,
       )}
     >
-      <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr_1fr_auto] md:items-end">
-        <div className="space-y-1.5">
-          <Label htmlFor="origin" className="text-xs font-medium text-[#0a2f6b]/65">
-            From City
-          </Label>
-          <div className="relative">
-            <MapPin className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-[#0a2f6b]/45" />
-            <Select value={origin} onValueChange={(v) => v && setOrigin(v)}>
-              <SelectTrigger
-                id="origin"
-                className="h-12 w-full min-w-0 border-transparent bg-white pl-8 text-[#0a2f6b]"
-              >
-                <SelectValue placeholder="Origin city" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAKISTAN_CITIES.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,0.7fr)_auto] lg:items-stretch">
+        <div className="relative grid min-h-14 grid-cols-2 overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <CityField
+            id="origin"
+            label="Leaving from"
+            value={origin}
+            onChange={setOrigin}
+          />
+          <div className="border-l border-slate-200">
+            <CityField
+              id="destination"
+              label="Going to"
+              value={destination}
+              onChange={setDestination}
+            />
           </div>
-        </div>
-
-        <div className="flex items-end justify-center pb-0.5">
-          <Button
+          <button
             type="button"
-            variant="outline"
-            size="icon"
             onClick={swapCities}
-            className="size-12 shrink-0 rounded-full border-white bg-white text-[#0a2f6b] shadow-sm hover:bg-[#f5f8fc]"
+            className="absolute top-1/2 left-1/2 z-10 inline-flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-md transition hover:border-[#0a2f6b]/30 hover:text-[#0a2f6b]"
             aria-label="Swap from and to cities"
             title="Swap route"
           >
             <ArrowLeftRight className="size-4" />
-            <span className="sr-only">⇄</span>
-          </Button>
+          </button>
         </div>
 
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="destination"
-            className="text-xs font-medium text-[#0a2f6b]/65"
-          >
-            To City
-          </Label>
-          <div className="relative">
-            <BusFront className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-[#0a2f6b]/45" />
-            <Select
-              value={destination}
-              onValueChange={(v) => v && setDestination(v)}
-            >
-              <SelectTrigger
-                id="destination"
-                className="h-12 w-full min-w-0 border-transparent bg-white pl-8 text-[#0a2f6b]"
-              >
-                <SelectValue placeholder="Destination city" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAKISTAN_CITIES.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <label className="relative flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-slate-200 bg-white px-4 py-2">
+          <span className="text-xs font-bold tracking-wide text-slate-500 uppercase">
+            Date
+          </span>
+          <span className="mt-0.5 flex items-center gap-2 text-base font-semibold text-slate-900">
+            <CalendarDays className="size-4 text-slate-500" />
+            {formatNaturalDate(date)}
+          </span>
+          <input
+            id="date"
+            type="date"
+            min={minDate}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="absolute inset-0 cursor-pointer opacity-0"
+          />
+        </label>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="date" className="text-xs font-medium text-[#0a2f6b]/65">
-            Departure date
-          </Label>
-          <div className="relative">
-            <CalendarDays className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-[#0a2f6b]/45" />
-            <Input
-              id="date"
-              type="date"
-              min={minDate}
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-12 border-transparent bg-white pl-8 text-[#0a2f6b]"
-            />
-          </div>
-        </div>
-
-        <Button
+        <button
           type="submit"
-          size="lg"
           data-testid="search-buses-btn"
-          className="h-12 bg-[#FF5A1F] px-6 text-white hover:bg-[#e84e16] md:min-w-[150px]"
+          className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-[#F5A623] px-7 text-base font-bold text-[#0A2F6B] shadow-sm transition hover:bg-[#e09415] lg:min-w-[168px]"
         >
+          <Search className="size-5" />
           Search Buses
-        </Button>
+        </button>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="text-xs text-[#0a2f6b]/55">Quick date</span>
+        <span className="text-xs text-slate-500">Quick date</span>
         <button
           type="button"
           onClick={() => setDate(today)}
@@ -194,7 +171,7 @@ export function SearchWidget({
             "rounded-full px-3 py-1 text-xs font-semibold transition",
             date === today
               ? "bg-[#0a2f6b] text-white"
-              : "bg-white text-[#0a2f6b] hover:bg-[#e8eef8]",
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200",
           )}
         >
           Today
@@ -206,7 +183,7 @@ export function SearchWidget({
             "rounded-full px-3 py-1 text-xs font-semibold transition",
             date === tomorrow
               ? "bg-[#0a2f6b] text-white"
-              : "bg-white text-[#0a2f6b] hover:bg-[#e8eef8]",
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200",
           )}
         >
           Tomorrow
@@ -219,5 +196,40 @@ export function SearchWidget({
         </p>
       ) : null}
     </form>
+  );
+}
+
+function CityField({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="flex min-h-14 flex-col justify-center px-4 py-2 pr-8">
+      <span className="text-xs font-bold tracking-wide text-slate-500 uppercase">
+        {label}
+      </span>
+      <Select value={value} onValueChange={(v) => v && onChange(v)}>
+        <SelectTrigger
+          id={id}
+          className="h-auto w-full min-w-0 border-0 bg-transparent p-0 text-base font-semibold text-slate-900 shadow-none focus-visible:ring-0 data-[size=default]:h-auto"
+        >
+          <SelectValue placeholder={label} />
+        </SelectTrigger>
+        <SelectContent>
+          {PAKISTAN_CITIES.map((city) => (
+            <SelectItem key={city} value={city}>
+              {city}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

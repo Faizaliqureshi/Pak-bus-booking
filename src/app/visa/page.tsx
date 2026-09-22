@@ -28,7 +28,7 @@ function VisaCard({ service }: { service: VisaService }) {
         {first?.type}
         {first?.validity ? ` · ${first.validity}` : ""}
       </p>
-      <p className="mt-3 text-sm font-semibold text-[#FF5A1F]">
+      <p className="mt-3 text-sm font-semibold text-[#F5A623]">
         From {formatRs(from)}
       </p>
       <p className="mt-auto pt-4 text-sm font-semibold text-[#0a2f6b] group-hover:underline">

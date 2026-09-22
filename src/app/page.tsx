@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
@@ -8,48 +9,80 @@ import {
   UsersRound,
 } from "lucide-react";
 import { SearchWidget } from "@/components/booking/SearchWidget";
-import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { ServiceTabs } from "@/components/layout/ServiceTabs";
 import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 
 const ROUTES = [
-  { from: "Karachi", to: "Lahore", fromPrice: 4000 },
-  { from: "Lahore", to: "Islamabad/Rawalpindi", fromPrice: 2200 },
-  { from: "Karachi", to: "Multan", fromPrice: 3500 },
-  { from: "Islamabad/Rawalpindi", to: "Peshawar", fromPrice: 1800 },
+  {
+    from: "Karachi",
+    to: "Lahore",
+    fromPrice: 4000,
+    duration: "Approx. 16h drive",
+    amenity: "Luxury AC Sleeper available",
+    image: "/routes/karachi.png",
+    imageAlt: "Karachi waterfront skyline at dusk",
+  },
+  {
+    from: "Lahore",
+    to: "Islamabad/Rawalpindi",
+    fromPrice: 2200,
+    duration: "Approx. 5h drive",
+    amenity: "Executive coach available",
+    image: "/routes/lahore.png",
+    imageAlt: "Lahore Badshahi Mosque and historic old city",
+  },
+  {
+    from: "Karachi",
+    to: "Multan",
+    fromPrice: 3500,
+    duration: "Approx. 10h drive",
+    amenity: "AC Sleeper available",
+    image: "/routes/multan.png",
+    imageAlt: "Historic blue-tiled shrines in Multan",
+  },
+  {
+    from: "Islamabad/Rawalpindi",
+    to: "Peshawar",
+    fromPrice: 1800,
+    duration: "Approx. 2.5h drive",
+    amenity: "Luxury AC coach available",
+    image: "/routes/islamabad.png",
+    imageAlt: "Faisal Mosque with the Margalla Hills in Islamabad",
+  },
 ];
 
 export default function HomePage() {
   return (
     <main className="bg-[#f3f6fb] text-[#0a2f6b]">
-      <section className="relative isolate overflow-hidden bg-[#0a2f6b]">
+      <section className="relative isolate min-h-[520px] overflow-hidden bg-[#061833] sm:min-h-[560px]">
+        <div aria-hidden className="absolute inset-0 z-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero/travel-mosaic-bus.png"
+            alt=""
+            className="h-full w-full object-cover"
+            style={{ objectPosition: "12% 38%" }}
+          />
+        </div>
         <div
           aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_15%_0%,rgba(255,90,31,0.22),transparent_42%),radial-gradient(ellipse_at_90%_20%,rgba(255,255,255,0.12),transparent_45%)]"
+          className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-28 bg-gradient-to-b from-black/45 to-transparent"
         />
         <div
           aria-hidden
-          className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#f3f6fb]"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-24 bg-gradient-to-b from-transparent to-[#f3f6fb]"
         />
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-8 pt-8 sm:px-6 sm:pt-12">
-          <div className="max-w-3xl animate-[fadeRise_700ms_ease-out]">
-            <TicketPassLogo tone="dark" size="lg" tagline />
-            <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
+        <div className="relative z-10 mx-auto flex min-h-[520px] w-full max-w-6xl flex-col justify-end px-4 pb-8 pt-8 sm:min-h-[560px] sm:px-6 sm:pb-10 sm:pt-10">
+          <div className="flex max-w-xl flex-col items-start [text-shadow:0_2px_16px_rgba(0,0,0,0.55)]">
+            <h1 className="origin-left scale-x-[0.84] font-heading text-2xl font-semibold tracking-tighter text-white sm:text-3xl lg:text-4xl">
               One App for Every Journey
             </h1>
-            <p className="mt-3 max-w-xl text-sm text-white/70 sm:text-base">
-              Pakistan’s next-generation travel platform — start with real-time
-              bus bookings, then grow into flights, visas, packages, and more.
-            </p>
           </div>
 
-          <div className="mt-8 border-b border-white/15 animate-[fadeRise_800ms_ease-out]">
+          <div className="mt-8 sm:mt-10">
             <ServiceTabs variant="hero" />
-          </div>
-
-          <div className="relative z-10 mt-5 animate-[fadeRise_900ms_ease-out]">
-            <SearchWidget />
+            <SearchWidget className="mt-1.5" />
           </div>
         </div>
       </section>
@@ -86,20 +119,39 @@ export default function HomePage() {
           <p className="mt-1 text-sm text-[#0a2f6b]/65">
             Start with Pakistan&apos;s busiest corridors.
           </p>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {ROUTES.map((route) => (
               <Link
                 key={`${route.from}-${route.to}`}
                 href={`/search?origin=${encodeURIComponent(route.from)}&destination=${encodeURIComponent(route.to)}`}
-                className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-[#0a2f6b]/25 hover:shadow-md"
+                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
               >
-                <p className="font-medium text-[#0a2f6b]">
-                  {route.from} → {route.to}
-                </p>
-                <p className="mt-2 text-xs text-[#0a2f6b]/55">Starting from</p>
-                <p className="font-heading text-lg font-semibold text-[#0a2f6b]">
-                  PKR {route.fromPrice.toLocaleString("en-PK")}
-                </p>
+                <div className="relative h-44 overflow-hidden">
+                  <Image
+                    src={route.image}
+                    alt={route.imageAlt}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover object-[center_70%] transition duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <span className="absolute bottom-3 left-3 rounded-full bg-[#F5A623] px-2.5 py-1 text-[11px] font-bold text-[#0A2F6B] shadow-sm">
+                    Starting from PKR {route.fromPrice.toLocaleString("en-PK")}
+                  </span>
+                </div>
+                <div className="space-y-2 p-4">
+                  <p className="font-heading text-base font-semibold text-slate-900">
+                    {route.from} → {route.to}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                      {route.duration}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                      {route.amenity}
+                    </span>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>

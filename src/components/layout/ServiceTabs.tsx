@@ -26,7 +26,7 @@ export const SERVICE_TABS = [
   },
   {
     href: "/umrah-packages",
-    label: "Umrah Packages",
+    label: "Umrah",
     emoji: "🕋",
     comingSoon: true,
   },
@@ -71,28 +71,35 @@ export function ServiceTabs({
             role="tab"
             aria-selected={active}
             className={cn(
-              "relative inline-flex shrink-0 items-center gap-1.5 rounded-t-lg px-3 py-2.5 text-sm font-medium transition sm:px-4",
+              "relative inline-flex shrink-0 items-center gap-1.5 px-3.5 py-2 text-sm font-semibold transition sm:px-4",
               isHero
-                ? active
-                  ? "bg-white text-[#0a2f6b]"
-                  : "bg-transparent text-white/85 hover:bg-white/10"
-                : active
-                  ? "bg-[#fff4ef] text-[#0a2f6b]"
-                  : "text-[#0a2f6b]/75 hover:bg-[#0a2f6b]/5",
+                ? cn(
+                    "rounded-full backdrop-blur-sm",
+                    active
+                      ? "bg-white text-[#0a2f6b] shadow-md"
+                      : "bg-white/15 text-white/90 hover:bg-white/25",
+                  )
+                : cn(
+                    "rounded-full",
+                    active
+                      ? "bg-[#0a2f6b] text-white"
+                      : "text-[#0a2f6b]/75 hover:bg-[#0a2f6b]/5",
+                  ),
             )}
           >
             <span aria-hidden>{tab.emoji}</span>
             <span>{tab.label}</span>
             {soon ? (
-              <span className="rounded-full bg-[#FF5A1F] px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white uppercase">
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wide uppercase",
+                  isHero && !active
+                    ? "bg-white/20 text-white"
+                    : "bg-[#F5A623] text-[#0A2F6B]",
+                )}
+              >
                 Soon
               </span>
-            ) : null}
-            {active ? (
-              <span
-                aria-hidden
-                className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-[#FF5A1F]"
-              />
             ) : null}
           </Link>
         );

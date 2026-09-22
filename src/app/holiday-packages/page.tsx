@@ -41,7 +41,7 @@ export default function HolidayPackagesPage() {
               {tour.title}
             </h2>
             <p className="mt-1 text-sm text-[#0a2f6b]/65">{tour.blurb}</p>
-            <p className="mt-3 font-semibold text-[#FF5A1F]">From {tour.from}</p>
+            <p className="mt-3 font-semibold text-[#F5A623]">From {tour.from}</p>
           </article>
         ))}
       </div>

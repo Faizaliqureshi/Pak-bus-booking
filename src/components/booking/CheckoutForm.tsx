@@ -414,7 +414,7 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
                 className={cn(
                   "flex flex-col items-start gap-1 rounded-xl border px-3 py-3 text-left transition",
                   paymentMethod === tab.id
-                    ? "border-[#FF5A1F] bg-[#fff4ef] text-[#0a2f6b]"
+                    ? "border-[#F5A623] bg-[#fff8e8] text-[#0a2f6b]"
                     : "border-[#0a2f6b]/10 bg-[#f8fafc] text-[#0a2f6b] hover:bg-[#eef2f8]",
                 )}
               >
@@ -525,7 +525,7 @@ export function CheckoutForm({ booking }: { booking: CheckoutBookingView }) {
             type="submit"
             data-testid="pay-confirm-btn"
             disabled={submitting || expired}
-            className="mt-4 h-11 w-full bg-[#FF5A1F] text-white hover:bg-[#e84e16]"
+            className="mt-4 h-11 w-full bg-[#F5A623] text-[#0A2F6B] hover:bg-[#e09415]"
           >
             {submitting ? (
               <>

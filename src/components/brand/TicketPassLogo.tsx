@@ -1,55 +1,25 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
-
-const NAVY = "#0A2F6B";
-const YELLOW = "#F5A623";
-const TAGLINE = "#5BA3D4";
 
 export type LogoTone = "light" | "dark";
 
-function TicketMark({ color, className }: { color: string; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 64 64"
-      className={className}
-      fill="none"
-      aria-hidden
-    >
-      <g
-        transform="rotate(-28 32 32)"
-        stroke={color}
-        strokeWidth="3.1"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <rect x="11" y="20" width="42" height="24" rx="4.5" />
-        <path d="M27 22.2v19.6" strokeDasharray="2.4 2.6" />
-      </g>
-    </svg>
-  );
-}
+const LOGOS = {
+  light: {
+    src: "/brand/ticketpass-logo-light.png",
+    width: 1024,
+    height: 236,
+  },
+  dark: {
+    src: "/brand/ticketpass-logo-dark.png",
+    width: 1024,
+    height: 236,
+  },
+} as const;
 
 const SIZES = {
-  sm: {
-    wrap: "gap-1.5",
-    mark: "size-7",
-    word: "text-lg sm:text-xl",
-    tag: "text-[9px]",
-    suffix: "text-xs",
-  },
-  md: {
-    wrap: "gap-2",
-    mark: "size-9",
-    word: "text-xl sm:text-2xl",
-    tag: "text-[10px]",
-    suffix: "text-sm",
-  },
-  lg: {
-    wrap: "gap-2.5",
-    mark: "size-12 sm:size-14",
-    word: "text-3xl sm:text-4xl lg:text-5xl",
-    tag: "text-xs sm:text-sm",
-    suffix: "text-base",
-  },
+  sm: "h-8 w-auto",
+  md: "h-10 w-auto",
+  lg: "h-14 w-auto",
 } as const;
 
 export function TicketPassLogo({
@@ -61,39 +31,44 @@ export function TicketPassLogo({
 }: {
   tone?: LogoTone;
   size?: keyof typeof SIZES;
+  /** Official artwork already includes the tagline. */
   tagline?: boolean;
   suffix?: string;
   className?: string;
 }) {
-  const ink = tone === "dark" ? "#FFFFFF" : NAVY;
-  const tag = tone === "dark" ? "rgba(255,255,255,0.72)" : TAGLINE;
-  const s = SIZES[size];
+  const logo = LOGOS[tone];
+  const label = suffix ? `TicketPass ${suffix}` : "TicketPass";
 
   return (
-    <span className={cn("inline-flex items-center", s.wrap, className)}>
-      <TicketMark color={ink} className={cn("shrink-0", s.mark)} />
-      <span className="flex min-w-0 flex-col leading-none">
-        <span className={cn("font-heading font-bold tracking-tight", s.word)}>
-          <span style={{ color: ink }}>Ticket</span>
-          <span style={{ color: YELLOW }}>Pass</span>
-          {suffix ? (
-            <span
-              className={cn("ml-1.5 font-semibold", s.suffix)}
-              style={{ color: ink }}
-            >
-              {suffix}
-            </span>
-          ) : null}
+    <span
+      className={cn(
+        "inline-flex h-auto w-auto shrink-0 items-center self-start",
+        className,
+      )}
+    >
+      <Image
+        src={logo.src}
+        alt={label}
+        width={logo.width}
+        height={logo.height}
+        priority={size !== "md"}
+        className={cn(
+          "block max-w-none shrink-0 object-contain object-left",
+          SIZES[size],
+        )}
+      />
+      {suffix ? (
+        <span
+          className={cn(
+            "ml-1.5 font-heading font-semibold tracking-tight",
+            tone === "dark" ? "text-white" : "text-[#0A2F6B]",
+            size === "sm" ? "text-xs" : "text-sm",
+          )}
+        >
+          {suffix}
         </span>
-        {tagline ? (
-          <span
-            className={cn("mt-1 font-medium tracking-wide", s.tag)}
-            style={{ color: tag }}
-          >
-            Smartest Access Solutions
-          </span>
-        ) : null}
-      </span>
+      ) : null}
+      {tagline ? <span className="sr-only">Smartest Access Solutions</span> : null}
     </span>
   );
 }
