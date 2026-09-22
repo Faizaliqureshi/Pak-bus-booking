@@ -40,8 +40,12 @@ function emptyTour(): HolidayTour {
   return { title: "", blurb: "", from: "", fromPkr: 0 };
 }
 
-function moneyLabel(pkr: number): string {
-  return `PKR ${Math.round(pkr || 0).toLocaleString("en-US")}`;
+function moneyLabel(pkr?: number): string {
+  return `PKR ${Math.round(pkr ?? 0).toLocaleString("en-US")}`;
+}
+
+function amountOrZero(value?: number): number {
+  return Number.isFinite(value) ? Number(value) : 0;
 }
 
 export function MasterCatalogEditor({ kind }: { kind: ServiceKind }) {
@@ -451,7 +455,13 @@ function PackageEditor({
             onChange={(fromPkr) =>
               onChange(
                 packages.map((p, i) =>
-                  i === index ? { ...p, fromPkr, from: moneyLabel(fromPkr) } : p,
+                  i === index
+                    ? {
+                        ...p,
+                        fromPkr: amountOrZero(fromPkr),
+                        from: moneyLabel(fromPkr),
+                      }
+                    : p,
                 ),
               )
             }
@@ -509,7 +519,13 @@ function TourEditor({
             onChange={(fromPkr) =>
               onChange(
                 tours.map((t, i) =>
-                  i === index ? { ...t, fromPkr, from: moneyLabel(fromPkr) } : t,
+                  i === index
+                    ? {
+                        ...t,
+                        fromPkr: amountOrZero(fromPkr),
+                        from: moneyLabel(fromPkr),
+                      }
+                    : t,
                 ),
               )
             }
