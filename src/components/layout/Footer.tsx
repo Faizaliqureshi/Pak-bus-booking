@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 
 const COMPANY = [
@@ -52,9 +53,7 @@ export function Footer() {
     <footer className="mt-auto border-t border-[#0a2f6b]/10 bg-[#0a2f6b] text-white">
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-4">
         <div>
-          <p className="font-heading text-2xl font-bold tracking-tight">
-            Ticket<span className="text-[#f5a623]">Pass</span>
-          </p>
+          <TicketPassLogo tone="dark" size="md" tagline />
           <p className="mt-3 text-sm leading-relaxed text-white/70">
             One App for Every Journey — buses, visa services, and more travel
             products on TicketPass.

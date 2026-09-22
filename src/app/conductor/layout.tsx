@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { getConductorUser } from "@/lib/admin-auth";
 
 export default async function ConductorLayout({
@@ -36,9 +37,7 @@ export default async function ConductorLayout({
       <header className="border-b border-[#0a2f6b]/10 bg-white">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
           <div>
-            <p className="font-heading text-xl font-bold">
-              Ticket<span className="text-[#f5a623]">Pass</span> Conductor
-            </p>
+            <TicketPassLogo tone="light" size="sm" suffix="Conductor" />
             <p className="text-xs text-[#0a2f6b]/55">{conductor.name}</p>
           </div>
           <nav className="flex flex-wrap gap-4 text-sm font-medium">

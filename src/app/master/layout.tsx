@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { getAdminUser } from "@/lib/admin-auth";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { MasterSidebar } from "@/components/master/MasterSidebar";
 
 /**
@@ -43,9 +44,9 @@ export default async function MasterLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-[#0a2f6b]/10 bg-white px-4 py-3 md:px-6">
           <div>
-            <p className="text-xs tracking-[0.18em] text-[#0a2f6b]/55 uppercase md:hidden">
-              TicketPass Master
-            </p>
+            <div className="md:hidden">
+              <TicketPassLogo tone="light" size="sm" suffix="Master" />
+            </div>
             <p className="text-sm text-[#0a2f6b]/65">
               Signed in as {user.name}
             </p>

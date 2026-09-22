@@ -15,6 +15,7 @@ import {
   Sun,
   Users,
 } from "lucide-react";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -47,8 +48,8 @@ export function MasterSidebar({
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r border-[#0a2f6b]/15 bg-[#0a2f6b] text-white">
       <div className="border-b border-white/10 px-5 py-5">
-        <Link href="/master" className="font-heading text-xl font-semibold">
-          Ticket<span className="text-[#f5a623]">Pass</span> Master
+        <Link href="/master">
+          <TicketPassLogo tone="dark" size="sm" suffix="Master" />
         </Link>
         <p className="mt-1 text-xs text-white/60">
           Platform control · ops &amp; fleet

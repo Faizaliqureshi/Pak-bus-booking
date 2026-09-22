@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, Menu, Phone, Search, Ticket, UserRound, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 import { cn } from "@/lib/utils";
 
@@ -169,11 +170,8 @@ export function Navbar() {
             ) : null}
           </div>
 
-          <Link
-            href="/"
-            className="font-heading truncate text-xl font-bold tracking-tight text-[#0a2f6b] sm:text-2xl"
-          >
-            Ticket<span className="text-[#f5a623]">Pass</span>
+          <Link href="/" className="truncate">
+            <TicketPassLogo tone="light" size="sm" />
           </Link>
         </div>
 

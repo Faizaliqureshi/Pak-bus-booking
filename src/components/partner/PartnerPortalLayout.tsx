@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { getPartnerUser } from "@/lib/admin-auth";
 
 export default async function PartnerPortalLayout({
@@ -35,7 +36,7 @@ export default async function PartnerPortalLayout({
       <header className="border-b border-[#0a2f6b]/10 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
           <div>
-            <p className="font-heading text-xl font-bold">Partner portal</p>
+            <TicketPassLogo tone="light" size="sm" suffix="Partner" />
             <p className="text-xs text-[#0a2f6b]/55">{partner.name}</p>
           </div>
           <nav className="flex gap-4 text-sm">

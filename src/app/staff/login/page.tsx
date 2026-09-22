@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { Label } from "@/components/ui/label";
 
 const DEMO_STAFF = [
@@ -64,9 +65,7 @@ export default function StaffLoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#0a2f6b] px-4 py-10">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl sm:p-8">
-        <p className="font-heading text-2xl font-bold text-[#0a2f6b]">
-          Ticket<span className="text-[#f5a623]">Pass</span> Staff
-        </p>
+        <TicketPassLogo tone="light" size="md" suffix="Staff" />
         <h1 className="mt-2 font-heading text-xl font-semibold text-[#1a2333]">
           Staff portal login
         </h1>

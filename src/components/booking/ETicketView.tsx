@@ -2,6 +2,7 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import { Download, Printer } from "lucide-react";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { Button } from "@/components/ui/button";
 import { formatPkr, formatTime } from "@/lib/booking-utils";
 import { maskCnic } from "@/lib/checkout-utils";
@@ -37,11 +38,8 @@ export function ETicketView({ ticket }: { ticket: TicketViewData }) {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
       <div className="mb-4 flex items-center justify-between print:hidden">
-        <a
-          href="/"
-          className="font-heading text-lg font-semibold tracking-tight text-teal-950"
-        >
-          TicketPass
+        <a href="/">
+          <TicketPassLogo tone="light" size="sm" />
         </a>
         <div className="flex items-center gap-2">
           <a

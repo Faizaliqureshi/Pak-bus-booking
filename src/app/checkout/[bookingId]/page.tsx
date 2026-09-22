@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { PaymentStatus } from "@prisma/client";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { CheckoutForm } from "@/components/booking/CheckoutForm";
 import { parseHeldSeats } from "@/lib/checkout-utils";
 import { prisma } from "@/lib/prisma";
@@ -49,11 +50,8 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#e8f5f1,_#f7faf9_45%,_#eef2f0)]">
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-        <Link
-          href="/"
-          className="font-heading text-lg font-semibold tracking-tight text-teal-950 print:hidden"
-        >
-          TicketPass
+        <Link href="/" className="print:hidden">
+          <TicketPassLogo tone="light" size="sm" />
         </Link>
         <div className="mt-6">
           <CheckoutForm

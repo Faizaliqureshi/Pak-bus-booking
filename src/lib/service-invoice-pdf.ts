@@ -40,12 +40,19 @@ export async function buildServiceInvoicePdf(order: {
 
   page.drawRectangle({ x: 0, y: height - 88, width, height: 88, color: NAVY });
   page.drawRectangle({ x: 0, y: height - 92, width, height: 4, color: GOLD });
-  page.drawText("TicketPass", {
+  page.drawText("Ticket", {
     x: 48,
     y: height - 42,
     size: 18,
     font: bold,
     color: rgb(1, 1, 1),
+  });
+  page.drawText("Pass", {
+    x: 48 + bold.widthOfTextAtSize("Ticket", 18),
+    y: height - 42,
+    size: 18,
+    font: bold,
+    color: GOLD,
   });
   page.drawText(title, { x: 48, y: height - 66, size: 11, font, color: GOLD });
   page.drawText(order.reference, {

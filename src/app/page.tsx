@@ -8,6 +8,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { SearchWidget } from "@/components/booking/SearchWidget";
+import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { ServiceTabs } from "@/components/layout/ServiceTabs";
 import { HELPLINE_DISPLAY, HELPLINE_TEL } from "@/lib/helpline";
 
@@ -33,10 +34,8 @@ export default function HomePage() {
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-8 pt-8 sm:px-6 sm:pt-12">
           <div className="max-w-3xl animate-[fadeRise_700ms_ease-out]">
-            <p className="font-heading text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-              Ticket<span className="text-[#f5a623]">Pass</span>
-            </p>
-            <h1 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
+            <TicketPassLogo tone="dark" size="lg" tagline />
+            <h1 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-white sm:text-3xl lg:text-4xl">
               One App for Every Journey
             </h1>
             <p className="mt-3 max-w-xl text-sm text-white/70 sm:text-base">
