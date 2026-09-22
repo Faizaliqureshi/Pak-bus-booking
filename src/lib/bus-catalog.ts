@@ -111,8 +111,8 @@ export function normalizeReviewComment(value: unknown): string | null {
 
 export async function readUploadedPhotos(
   files: FormDataEntryValue[],
-): Promise<{ mimeType: string; data: Buffer }[]> {
-  const photos: { mimeType: string; data: Buffer }[] = [];
+): Promise<{ mimeType: string; data: Uint8Array }[]> {
+  const photos: { mimeType: string; data: Uint8Array }[] = [];
   for (const file of files) {
     if (!(file instanceof File) || file.size === 0) continue;
     const mimeType = file.type || "application/octet-stream";
@@ -128,7 +128,7 @@ export async function readUploadedPhotos(
     }
     photos.push({
       mimeType: mimeType === "image/jpg" ? "image/jpeg" : mimeType,
-      data: Buffer.from(await file.arrayBuffer()),
+      data: new Uint8Array(await file.arrayBuffer()),
     });
   }
   return photos;
