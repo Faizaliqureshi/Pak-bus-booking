@@ -4,6 +4,7 @@ import {
   MAX_BUS_PHOTOS,
   photoPublicUrl,
   readUploadedPhotos,
+  toPrismaBytes,
 } from "@/lib/bus-catalog";
 import { prisma } from "@/lib/prisma";
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
           data: {
             busId: bus.id,
             mimeType: photo.mimeType,
-            data: photo.data,
+            data: toPrismaBytes(photo.data),
             sortOrder: start + i,
           },
           select: { id: true },

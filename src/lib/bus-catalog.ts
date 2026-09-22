@@ -109,10 +109,19 @@ export function normalizeReviewComment(value: unknown): string | null {
   return text || null;
 }
 
+export type PhotoBytes = Uint8Array<ArrayBuffer>;
+
+export function toPrismaBytes(data: ArrayBuffer | Uint8Array): PhotoBytes {
+  const view = data instanceof Uint8Array ? data : new Uint8Array(data);
+  const copy = new Uint8Array(view.byteLength);
+  copy.set(view);
+  return copy as PhotoBytes;
+}
+
 export async function readUploadedPhotos(
   files: FormDataEntryValue[],
-): Promise<{ mimeType: string; data: Uint8Array }[]> {
-  const photos: { mimeType: string; data: Uint8Array }[] = [];
+): Promise<{ mimeType: string; data: PhotoBytes }[]> {
+  const photos: { mimeType: string; data: PhotoBytes }[] = [];
   for (const file of files) {
     if (!(file instanceof File) || file.size === 0) continue;
     const mimeType = file.type || "application/octet-stream";
@@ -128,7 +137,7 @@ export async function readUploadedPhotos(
     }
     photos.push({
       mimeType: mimeType === "image/jpg" ? "image/jpeg" : mimeType,
-      data: new Uint8Array(await file.arrayBuffer()),
+      data: toPrismaBytes(await file.arrayBuffer()),
     });
   }
   return photos;

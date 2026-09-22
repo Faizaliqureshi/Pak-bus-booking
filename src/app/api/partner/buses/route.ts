@@ -6,6 +6,7 @@ import {
   normalizeFeatures,
   photoPublicUrl,
   readUploadedPhotos,
+  toPrismaBytes,
 } from "@/lib/bus-catalog";
 import { prisma } from "@/lib/prisma";
 
@@ -18,7 +19,7 @@ function serializePartnerBus(bus: {
   totalSeats: number;
   features: string[];
   createdAt: Date;
-  photos: { id: string }[];
+  photos?: { id: string }[];
   _count?: { trips: number };
 }) {
   return {
@@ -27,7 +28,7 @@ function serializePartnerBus(bus: {
     layoutType: bus.layoutType,
     totalSeats: bus.totalSeats,
     features: bus.features,
-    photos: bus.photos.map((p) => ({
+    photos: (bus.photos ?? []).map((p) => ({
       id: p.id,
       url: photoPublicUrl(p.id),
     })),
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
   let layoutType = "";
   let totalSeats = 0;
   let features: string[] = [];
-  let photos: { mimeType: string; data: Buffer }[] = [];
+  let photos: Awaited<ReturnType<typeof readUploadedPhotos>> = [];
 
   try {
     if (contentType.includes("multipart/form-data")) {
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
         photos: {
           create: photos.map((photo, i) => ({
             mimeType: photo.mimeType,
-            data: photo.data,
+            data: toPrismaBytes(photo.data),
             sortOrder: i,
           })),
         },
