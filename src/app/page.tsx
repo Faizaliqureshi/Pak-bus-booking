@@ -44,7 +44,7 @@ export default function HomePage() {
             </h1>
             <p className="mt-3 max-w-xl text-sm text-white/70 sm:text-base">
               Pakistan’s next-generation travel platform — start with real-time
-              bus bookings, then grow into flights, hotels, packages, and more.
+              bus bookings, then grow into flights, visas, packages, and more.
             </p>
           </div>
 

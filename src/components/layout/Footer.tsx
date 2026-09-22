@@ -41,6 +41,7 @@ export function Footer() {
     pathname.startsWith("/partner/fleet") ||
     pathname.startsWith("/partner/api") ||
     pathname.startsWith("/partner/track") ||
+    pathname.startsWith("/partner/routes") ||
     pathname.startsWith("/conductor") ||
     pathname.startsWith("/account")
   ) {
@@ -55,8 +56,8 @@ export function Footer() {
             Ticket<span className="text-[#f5a623]">Pass</span>
           </p>
           <p className="mt-3 text-sm leading-relaxed text-white/70">
-            One App for Every Journey — buses today, flights, packages, and visa
-            assistance tomorrow.
+            One App for Every Journey — buses, visa services, and more travel
+            products on TicketPass.
           </p>
           <h3 className="mt-6 text-sm font-semibold tracking-wide text-white/90 uppercase">
             Company

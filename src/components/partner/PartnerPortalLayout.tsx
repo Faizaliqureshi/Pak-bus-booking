@@ -42,6 +42,9 @@ export default async function PartnerPortalLayout({
             <Link href="/partner/fleet" className="font-medium hover:underline">
               Fleet
             </Link>
+            <Link href="/partner/routes" className="hover:underline">
+              Live routes
+            </Link>
             <Link href="/partner/track" className="hover:underline">
               Track Bus
             </Link>

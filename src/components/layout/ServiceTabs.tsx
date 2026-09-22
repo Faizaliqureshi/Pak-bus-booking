@@ -21,10 +21,9 @@ export const SERVICE_TABS = [
     comingSoon: true,
   },
   {
-    href: "/hotels",
-    label: "Hotels",
-    emoji: "🏨",
-    comingSoon: true,
+    href: "/visa",
+    label: "Visas",
+    emoji: "🛂",
   },
   {
     href: "/umrah-packages",
@@ -36,12 +35,6 @@ export const SERVICE_TABS = [
     href: "/holiday-packages",
     label: "Holidays",
     emoji: "🌴",
-    comingSoon: true,
-  },
-  {
-    href: "/visa",
-    label: "Visa Services",
-    emoji: "🛂",
     comingSoon: true,
   },
 ] as const;

@@ -53,6 +53,9 @@ export default async function MasterLayout({
           <nav className="flex gap-3 overflow-x-auto text-xs font-medium md:hidden">
             <Link href="/master">Control</Link>
             <Link href="/master/dashboard">Ops</Link>
+            <Link href="/master/visas">Visas</Link>
+            <Link href="/master/umrah">Umrah</Link>
+            <Link href="/master/holidays">Holidays</Link>
             <Link href="/master/buses">Fleet</Link>
             <Link href="/master/track">Track</Link>
             <Link href="/master/manifest">Manifest</Link>

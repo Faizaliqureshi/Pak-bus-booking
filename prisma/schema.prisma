@@ -399,3 +399,58 @@ model RewardTransaction {
   @@index([status])
   @@map("reward_transactions")
 }
+
+/// Passenger desk inquiries for visa / Umrah / holiday (not bus bookings).
+model ServiceInquiry {
+  id        String   @id @default(cuid())
+  /// VISA | UMRAH | HOLIDAY
+  kind      String
+  country   String?
+  name      String
+  phone     String
+  notes     String?
+  /// NEW | CONTACTED | CONVERTED | CLOSED
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+
+  orders ServiceOrder[]
+
+  @@index([kind, createdAt])
+  @@index([status])
+  @@map("service_inquiries")
+}
+
+/// Paid or pending files for visa / Umrah / holiday. Isolated from bus Booking.
+model ServiceOrder {
+  id            String    @id @default(cuid())
+  /// VISA | UMRAH | HOLIDAY
+  kind          String
+  inquiryId     String?
+  reference     String    @unique
+  country       String
+  productLabel  String
+  customerName  String
+  customerPhone String
+  amountPkr     Decimal
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentMethod String?
+  paidAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  inquiry ServiceInquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+
+  @@index([kind, paymentStatus])
+  @@index([kind, createdAt])
+  @@map("service_orders")
+}
+
+/// Editable published catalog for visa / Umrah / holiday pages.
+model ServiceCatalog {
+  id        String   @id @default(cuid())
+  /// VISA | UMRAH | HOLIDAY
+  kind      String   @unique
+  payload   Json
+  updatedAt DateTime @updatedAt
+
+  @@map("service_catalogs")
+}

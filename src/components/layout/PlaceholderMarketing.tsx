@@ -81,25 +81,62 @@ export function NotifyForm({
   );
 }
 
-export function InquiryForm({ whatsappHref }: { whatsappHref?: string }) {
+export function InquiryForm({
+  whatsappHref,
+  service = "VISA",
+  country,
+}: {
+  whatsappHref?: string;
+  service?: "VISA" | "UMRAH" | "HOLIDAY";
+  country?: string;
+}) {
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   return (
     <form
       className="mt-4 space-y-3"
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        setSent(true);
+        setError(null);
+        setSaving(true);
+        const form = e.currentTarget;
+        const data = new FormData(form);
+        try {
+          const res = await fetch("/api/services/inquiries", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              kind: service,
+              country: country ?? data.get("country") ?? null,
+              name: String(data.get("name") ?? ""),
+              phone: String(data.get("phone") ?? ""),
+              notes: String(data.get("notes") ?? ""),
+            }),
+          });
+          const json = await res.json();
+          if (!res.ok || !json.success) {
+            throw new Error(json.message || "Could not send inquiry.");
+          }
+          setSent(true);
+          form.reset();
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Could not send inquiry.");
+        } finally {
+          setSaving(false);
+        }
       }}
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="inq-name">Full name</Label>
-          <Input id="inq-name" required className="h-11 bg-white" />
+          <Input id="inq-name" name="name" required className="h-11 bg-white" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="inq-phone">Mobile</Label>
           <Input
             id="inq-phone"
+            name="phone"
             required
             placeholder="0300-1234567"
             className="h-11 bg-white font-mono"
@@ -108,11 +145,20 @@ export function InquiryForm({ whatsappHref }: { whatsappHref?: string }) {
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="inq-notes">Travel preferences</Label>
-        <Input id="inq-notes" className="h-11 bg-white" placeholder="Dates, group size…" />
+        <Input
+          id="inq-notes"
+          name="notes"
+          className="h-11 bg-white"
+          placeholder="Dates, group size…"
+        />
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" className="bg-[#0a2f6b] text-white hover:bg-[#08305f]">
-          Submit inquiry
+        <Button
+          type="submit"
+          disabled={saving}
+          className="bg-[#0a2f6b] text-white hover:bg-[#08305f]"
+        >
+          {saving ? "Sending…" : "Submit inquiry"}
         </Button>
         {whatsappHref ? (
           <a
@@ -125,6 +171,11 @@ export function InquiryForm({ whatsappHref }: { whatsappHref?: string }) {
           </a>
         ) : null}
       </div>
+      {error ? (
+        <p className="text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
       {sent ? (
         <p className="text-sm text-emerald-700" role="status">
           Inquiry received. Our travel desk will contact you shortly.

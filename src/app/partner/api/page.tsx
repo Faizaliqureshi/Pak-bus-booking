@@ -129,8 +129,9 @@ export default function PartnerApiPage() {
       <div>
         <h1 className="font-heading text-3xl font-semibold">Partner API</h1>
         <p className="mt-1 text-sm text-[#0a2f6b]/65">
-          Connect your own booking system. Push trips and seats with an API
-          key; TicketPass will POST paid bookings to your webhook.
+          Connect your own booking system. Create coaches, publish live
+          routes, and push seats with an API key. TicketPass POSTs paid
+          bookings to your webhook.
         </p>
       </div>
 
@@ -255,6 +256,53 @@ export default function PartnerApiPage() {
             </table>
           </div>
         )}
+      </section>
+
+      <section className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-5 shadow-sm">
+        <h2 className="font-heading text-lg font-semibold">
+          Create a bus and go live
+        </h2>
+        <p className="mt-1 text-xs text-[#0a2f6b]/55">
+          Auth header: <code>Authorization: Bearer tp_live_…</code>. A live
+          departure is searchable on TicketPass the same minute it is posted.
+        </p>
+        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-[#0a2f6b]/80">
+          <li>
+            <code>POST /api/v1/partner/buses</code> —{" "}
+            <code>
+              {`{ "busNumber": "DAEWOO-901", "layoutType": "2x2", "totalSeats": 40, "externalId": "veh-901" }`}
+            </code>
+          </li>
+          <li>
+            <code>POST /api/v1/partner/live</code> — one call creates the
+            coach if needed, the corridor, and a bookable departure.
+          </li>
+        </ol>
+        <pre className="mt-4 overflow-x-auto rounded-xl bg-[#0a2f6b] p-4 text-[11px] leading-relaxed text-white">
+          {`POST /api/v1/partner/live
+{
+  "bus": { "busNumber": "DAEWOO-901", "layoutType": "2x2", "totalSeats": 40 },
+  "route": {
+    "name": "Karachi to Lahore Express",
+    "originCity": "Karachi",
+    "destinationCity": "Lahore",
+    "distanceKm": 1200,
+    "baseFare": 4500
+  },
+  "trip": {
+    "departureTime": "2026-09-20T10:00:00.000Z",
+    "arrivalTime": "2026-09-21T04:00:00.000Z",
+    "basePrice": 4500
+  }
+}`}
+        </pre>
+        <p className="mt-3 text-xs text-[#0a2f6b]/55">
+          You can also publish from the portal:{" "}
+          <a href="/partner/routes" className="font-medium underline">
+            Live routes
+          </a>
+          .
+        </p>
       </section>
 
       <section className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-5 shadow-sm">

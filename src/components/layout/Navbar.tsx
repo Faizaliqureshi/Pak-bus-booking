@@ -14,9 +14,9 @@ const NAV = [
     match: (p: string) => p === "/" || p.startsWith("/search"),
   },
   { href: "/air/bookings/search", label: "Flights" },
+  { href: "/visa", label: "Visas" },
   { href: "/umrah-packages", label: "Umrah Packages" },
   { href: "/holiday-packages", label: "Holiday Packages" },
-  { href: "/visa", label: "Visa" },
   { href: "/partner/register", label: "Partner Registration" },
   { href: "/about-us", label: "About Us" },
   { href: "/contact-us", label: "Contact Us" },
@@ -114,6 +114,7 @@ export function Navbar() {
     pathname.startsWith("/partner/fleet") ||
     pathname.startsWith("/partner/api") ||
     pathname.startsWith("/partner/track") ||
+    pathname.startsWith("/partner/routes") ||
     pathname.startsWith("/conductor")
   ) {
     return null;

@@ -1,7 +1,7 @@
 "use client";
 
 import { QRCodeSVG } from "qrcode.react";
-import { Printer } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatPkr, formatTime } from "@/lib/booking-utils";
 import { maskCnic } from "@/lib/checkout-utils";
@@ -43,14 +43,30 @@ export function ETicketView({ ticket }: { ticket: TicketViewData }) {
         >
           TicketPass
         </a>
-        <Button
-          type="button"
-          className="h-10 bg-teal-800 text-white hover:bg-teal-700"
-          onClick={() => window.print()}
-        >
-          <Printer className="size-4" />
-          Print / Save as PDF
-        </Button>
+        <div className="flex items-center gap-2">
+          <a
+            href={`/api/account/bookings/${encodeURIComponent(ticket.pnr)}/ticket`}
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-teal-800 px-3 text-sm font-semibold text-teal-900 hover:bg-teal-50"
+          >
+            <Download className="size-4" />
+            E-ticket PDF
+          </a>
+          <a
+            href={`/api/account/bookings/${encodeURIComponent(ticket.pnr)}/invoice`}
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-teal-800 px-3 text-sm font-semibold text-teal-900 hover:bg-teal-50"
+          >
+            <Download className="size-4" />
+            Invoice PDF
+          </a>
+          <Button
+            type="button"
+            className="h-10 bg-teal-800 text-white hover:bg-teal-700"
+            onClick={() => window.print()}
+          >
+            <Printer className="size-4" />
+            Print
+          </Button>
+        </div>
       </div>
 
       <article

@@ -7,9 +7,12 @@ import {
   ClipboardList,
   LayoutDashboard,
   MapPinned,
+  Moon,
   Radio,
   Settings,
   Shield,
+  Stamp,
+  Sun,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +29,9 @@ const NAV = [
     label: "Passenger Manifests",
     icon: ClipboardList,
   },
+  { href: "/master/visas", label: "Visas", icon: Stamp },
+  { href: "/master/umrah", label: "Umrah", icon: Moon },
+  { href: "/master/holidays", label: "Holidays", icon: Sun },
   { href: "/master/settings", label: "Settings", icon: Settings },
 ] as const;
 

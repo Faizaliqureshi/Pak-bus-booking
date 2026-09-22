@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bus, CheckCircle2, Loader2, Search } from "lucide-react";
+import { Bus, CheckCircle2, Download, FileText, Loader2, Search } from "lucide-react";
 import { formatCardDate, formatTime } from "@/lib/booking-utils";
 import { Input } from "@/components/ui/input";
 
@@ -132,8 +132,8 @@ function BookingCard({
 }) {
   const issued = booking.issued;
   const showExpired = mode === "all" && booking.expired && issued;
-  const href = issued ? `/ticket/${booking.pnr}` : `/checkout/${booking.id}`;
-  const actionLabel = issued && !showExpired ? "Manage" : "View";
+  const ticketPdf = `/api/account/bookings/${encodeURIComponent(booking.pnr)}/ticket`;
+  const invoicePdf = `/api/account/bookings/${encodeURIComponent(booking.pnr)}/invoice`;
 
   return (
     <li className="rounded-xl border border-[#e6ebf2] bg-white p-4 shadow-sm sm:p-5">
@@ -169,7 +169,7 @@ function BookingCard({
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col items-stretch justify-between gap-3 border-t border-[#eef2f7] pt-3 sm:w-[200px] sm:items-end sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5">
+        <div className="flex shrink-0 flex-col items-stretch justify-between gap-3 border-t border-[#eef2f7] pt-3 sm:w-[220px] sm:items-end sm:border-t-0 sm:border-l sm:pt-0 sm:pl-5">
           <p className="text-xs text-[#94a3b8]">
             {formatCardDate(booking.departureTime)}
           </p>
@@ -195,12 +195,39 @@ function BookingCard({
               </p>
             ) : null}
           </div>
-          <Link
-            href={href}
-            className="inline-flex h-10 items-center justify-center rounded-md bg-[#0a2f6b] px-6 text-sm font-semibold text-white hover:bg-[#08305f]"
-          >
-            {actionLabel}
-          </Link>
+          {issued ? (
+            <div className="flex w-full flex-col gap-2">
+              <a
+                href={ticketPdf}
+                download
+                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-[#0a2f6b] px-4 text-sm font-semibold text-white hover:bg-[#08305f]"
+              >
+                <Download className="size-3.5" />
+                E-ticket PDF
+              </a>
+              <a
+                href={invoicePdf}
+                download
+                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-[#0a2f6b] px-4 text-sm font-semibold text-[#0a2f6b] hover:bg-[#0a2f6b] hover:text-white"
+              >
+                <FileText className="size-3.5" />
+                Invoice PDF
+              </a>
+              <Link
+                href={`/ticket/${encodeURIComponent(booking.pnr)}`}
+                className="text-center text-xs font-medium text-[#0a2f6b] underline-offset-2 hover:underline"
+              >
+                View ticket
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href={`/checkout/${booking.id}`}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-[#0a2f6b] px-6 text-sm font-semibold text-white hover:bg-[#08305f]"
+            >
+              View
+            </Link>
+          )}
         </div>
       </div>
     </li>

@@ -446,6 +446,7 @@ Auth: `Authorization: Bearer tp_live_…` or `X-API-Key`. Keys are minted in `/p
 | GET/POST | `/api/v1/partner/buses` | Sync coaches (`externalId` upsert) |
 | GET/POST | `/api/v1/partner/routes` | Sync corridors + stops |
 | GET/POST | `/api/v1/partner/trips` | Sync departures; seats provisioned |
+| POST | `/api/v1/partner/live` | Create bus (if needed) + corridor + live departure |
 | GET/PUT | `/api/v1/partner/trips/:id/seats` | Push AVAILABLE/BOOKED from GDS |
 | GET | `/api/v1/partner/bookings` | Paid TicketPass sales |
 | GET/PUT | `/api/v1/partner/webhook` | Register outbound URL |
@@ -503,6 +504,7 @@ Seat sync never overwrites a TicketPass `LOCKED` hold or a TicketPass-sold `BOOK
 | 34 | `/partner/register` | `src/app/partner/register/page.tsx` | Public apply |
 | 35 | `/partner/fleet` | `src/app/partner/fleet/page.tsx` | Partner coaches |
 | 35b | `/partner/api` | `src/app/partner/api/page.tsx` | API keys + webhook |
+| 35c | `/partner/routes` | `src/app/partner/routes/page.tsx` | Publish live corridors |
 | 36 | `/admin` | `src/app/admin/page.tsx` | → `/master` |
 | 37 | `/admin/[...path]` | `src/app/admin/[...path]/page.tsx` | Maps old admin paths |
 | 38 | `/conductor/[[...path]]` | `src/app/conductor/[[...path]]/page.tsx` | → `/staff/login` |
