@@ -1,6 +1,5 @@
 import { PaymentStatus, TripSeatStatus, UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getActiveLocksForTrip } from "@/lib/redis-lock";
 import { listActivePrismaLocks } from "@/lib/trip-inventory";
 
 export const TICKETPASS_COMMISSION_RATE = 0.1;
@@ -228,7 +227,7 @@ export async function platformFinanceSnapshot() {
 }
 
 export async function tripSeatSnapshot(tripId: string, totalSeats: number) {
-  const [holds, inventory, tickets, prismaLocks, locks] = await Promise.all([
+  const [holds, inventory, tickets, prismaLocks] = await Promise.all([
     prisma.partnerSeatHold.findMany({
       where: { tripId },
       select: { seatNumber: true, note: true },
@@ -244,12 +243,6 @@ export async function tripSeatSnapshot(tripId: string, totalSeats: number) {
       select: { seatNumber: true },
     }),
     listActivePrismaLocks(tripId),
-    Promise.race([
-      getActiveLocksForTrip(tripId),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("lock scan timeout")), 400),
-      ),
-    ]).catch(() => []),
   ]);
 
   const held = new Set(holds.map((h) => h.seatNumber));
@@ -257,10 +250,7 @@ export async function tripSeatSnapshot(tripId: string, totalSeats: number) {
     ...inventory.map((s) => s.seatNumber),
     ...tickets.map((t) => t.seatNumber),
   ]);
-  const locked = new Set([
-    ...locks.map((l) => l.seatNumber),
-    ...prismaLocks.map((l) => l.seatNumber),
-  ]);
+  const locked = new Set(prismaLocks.map((l) => l.seatNumber));
 
   const seats = Array.from({ length: totalSeats }, (_, i) => {
     const seatNumber = String(i + 1);

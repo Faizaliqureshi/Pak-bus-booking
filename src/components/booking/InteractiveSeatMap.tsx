@@ -158,9 +158,18 @@ export function InteractiveSeatMap({
         dropStopId,
         userId,
       });
-      const res = await fetch(`/api/trips/${tripId}/seats?${params}`);
-      const json = await res.json();
-      if (!res.ok || !json.success) {
+      const url = `/api/trips/${tripId}/seats?${params}`;
+      let res: Response | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          res = await fetch(url);
+          break;
+        } catch (err) {
+          if (attempt === 1) throw err;
+        }
+      }
+      const json = await res!.json();
+      if (!res!.ok || !json.success) {
         throw new Error(json.message || "Failed to load seats.");
       }
       setPayload(json.data);

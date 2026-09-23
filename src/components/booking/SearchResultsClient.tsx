@@ -122,17 +122,10 @@ export function SearchResultsClient({
       setExpandedTripId(null);
       try {
         const params = new URLSearchParams({ origin, destination, date });
-        const [tripsRes, meRes, demoRes] = await Promise.all([
-          fetch(`/api/trips/search?${params}`),
-          fetch("/api/auth/me"),
-          fetch("/api/demo-user"),
-        ]);
-        const tripsJson = await tripsRes.json();
-        const meJson = await meRes.json();
-        const demoJson = await demoRes.json();
-
-        if (!tripsRes.ok || !tripsJson.success) {
-          throw new Error(tripsJson.message || "Could not load trips.");
+        const tripsRes = await fetch(`/api/trips/search?${params}`);
+        const tripsJson = await tripsRes.json().catch(() => null);
+        if (!tripsRes.ok || !tripsJson?.success) {
+          throw new Error(tripsJson?.message || "Could not load trips.");
         }
         if (!cancelled) {
           const list = tripsJson.data as TripSearchResult[];
@@ -146,10 +139,17 @@ export function SearchResultsClient({
             setPriceRange([min, paddedMax]);
           }
         }
+
+        const [meRes, demoRes] = await Promise.all([
+          fetch("/api/auth/me").catch(() => null),
+          fetch("/api/demo-user").catch(() => null),
+        ]);
+        const meJson = meRes ? await meRes.json().catch(() => null) : null;
+        const demoJson = demoRes ? await demoRes.json().catch(() => null) : null;
         if (!cancelled) {
-          if (meRes.ok && meJson.success && meJson.data?.id) {
+          if (meRes?.ok && meJson?.success && meJson.data?.id) {
             setUserId(meJson.data.id);
-          } else if (demoRes.ok && demoJson.success && demoJson.data?.id) {
+          } else if (demoRes?.ok && demoJson?.success && demoJson.data?.id) {
             setUserId(demoJson.data.id);
           }
         }

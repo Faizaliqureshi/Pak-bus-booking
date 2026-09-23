@@ -119,13 +119,16 @@ export function getRedis(): RedisLike {
       globalForRedis.redis = new MemoryRedis();
     } else {
       const url = process.env.REDIS_URL || "redis://localhost:6379";
-      globalForRedis.redis = new Redis(url, {
+      const client = new Redis(url, {
         maxRetriesPerRequest: 1,
         enableReadyCheck: false,
         enableOfflineQueue: false,
         lazyConnect: true,
         connectTimeout: 1000,
       });
+      // Unhandled "error" crashes the Vercel isolate → browser "Failed to fetch".
+      client.on("error", () => {});
+      globalForRedis.redis = client;
     }
   }
   return globalForRedis.redis;
