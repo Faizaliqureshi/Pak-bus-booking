@@ -7,30 +7,35 @@ function ymdLocal(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-/** Find a date (within next few days) that has Karachi → Lahore trips. */
-async function resolveTravelDate(request: APIRequestContext): Promise<string> {
-  for (let offset = 1; offset <= 5; offset++) {
-    const day = new Date();
-    day.setDate(day.getDate() + offset);
-    const date = ymdLocal(day);
-    const res = await request.get("/api/trips/search", {
-      params: {
-        origin: "Karachi",
-        destination: "Lahore",
-        date,
-      },
-    });
-    if (!res.ok()) continue;
-    const json = (await res.json()) as {
-      success?: boolean;
-      data?: unknown[];
-    };
-    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-      return date;
+const SEARCH_CORRIDORS = [
+  ["Karachi", "Lahore"],
+  ["Karachi", "Sukkur"],
+] as const;
+
+/** Find a date (within next few days) that has a live searchable trip. */
+async function resolveTravelSearch(
+  request: APIRequestContext,
+): Promise<{ origin: string; destination: string; date: string }> {
+  for (const [origin, destination] of SEARCH_CORRIDORS) {
+    for (let offset = 0; offset <= 5; offset++) {
+      const day = new Date();
+      day.setDate(day.getDate() + offset);
+      const date = ymdLocal(day);
+      const res = await request.get("/api/trips/search", {
+        params: { origin, destination, date },
+      });
+      if (!res.ok()) continue;
+      const json = (await res.json()) as {
+        success?: boolean;
+        data?: unknown[];
+      };
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        return { origin, destination, date };
+      }
     }
   }
   throw new Error(
-    "No Karachi→Lahore trips found in the next 5 days. Run `npx prisma db seed`.",
+    "No live trips found in the next 5 days. Publish a partner route or run `npx prisma db seed`.",
   );
 }
 
@@ -83,7 +88,7 @@ test.describe("Booking flow", () => {
     page,
     request,
   }) => {
-    const travelDate = await resolveTravelDate(request);
+    const travel = await resolveTravelSearch(request);
 
     // 1) Home search widget → results
     await page.goto("/");
@@ -94,9 +99,9 @@ test.describe("Booking flow", () => {
     await page.getByTestId("search-buses-btn").click();
     await page.waitForURL(/\/search\?/);
 
-    // Ensure we search the seeded corridor/date (widget defaults may differ by day).
+    // Ensure we search the live corridor/date (widget defaults may differ by day).
     await page.goto(
-      `/search?origin=${encodeURIComponent("Karachi")}&destination=${encodeURIComponent("Lahore")}&date=${travelDate}`,
+      `/search?origin=${encodeURIComponent(travel.origin)}&destination=${encodeURIComponent(travel.destination)}&date=${travel.date}`,
     );
 
     await expect(page.getByTestId("trip-card").first()).toBeVisible({
@@ -148,7 +153,7 @@ test.describe("Booking flow", () => {
 
     // 5) E-ticket
     await page.waitForURL(/\/ticket\//, { timeout: 45_000 });
-    await expect(page.getByText("E-Ticket")).toBeVisible();
+    await expect(page.getByText("E-Ticket", { exact: true })).toBeVisible();
     await expect(page.getByText("PNR")).toBeVisible();
     await expect(page.getByText("E2E Test Passenger")).toBeVisible();
     await expect(

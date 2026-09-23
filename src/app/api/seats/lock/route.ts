@@ -49,9 +49,11 @@ export async function POST(request: NextRequest) {
     );
 
     if (!result.success) {
-      const status =
-        result.message === "Seat held by another passenger." ? 409 : 400;
-      return NextResponse.json(result, { status });
+      const conflict =
+        result.message.includes("reserved") ||
+        result.message.includes("booked") ||
+        result.message.includes("held");
+      return NextResponse.json(result, { status: conflict ? 409 : 400 });
     }
 
     return NextResponse.json(

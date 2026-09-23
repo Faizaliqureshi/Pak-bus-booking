@@ -9,6 +9,7 @@ import {
   buildCoachRows,
   buildSleeperDecks,
   isSleeperLayout,
+  isTwoByOneLayout,
 } from "@/lib/seat-layout";
 import { cn } from "@/lib/utils";
 
@@ -245,6 +246,7 @@ function PartnerCoachGrid({
           busy === seat.seatNumber
         }
         onClick={() => onToggle(seat)}
+        data-testid={`partner-seat-${seatNumber}`}
         className={cn(
           "flex size-8 items-center justify-center rounded-full border text-[11px] font-semibold sm:size-9",
           seat.status === "AVAILABLE" &&
@@ -305,6 +307,17 @@ function PartnerCoachGrid({
               className="mx-auto grid w-full max-w-[280px] grid-cols-5 items-center justify-items-center gap-x-3 sm:max-w-[320px]"
             >
               {row.seats.map((n, j) => cell(n, `${i}-${j}`))}
+            </div>
+          );
+        }
+        if (isTwoByOneLayout(layoutType)) {
+          return (
+            <div
+              key={i}
+              className="mx-auto grid w-full max-w-[120px] grid-cols-2 items-center justify-items-center gap-x-6"
+            >
+              {cell(row.seats[0], `${i}-l`)}
+              {cell(row.seats[1], `${i}-r`)}
             </div>
           );
         }

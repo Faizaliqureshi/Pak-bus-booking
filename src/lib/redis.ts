@@ -101,6 +101,7 @@ const globalForRedis = globalThis as unknown as {
 function useMemoryRedis(): boolean {
   const url = process.env.REDIS_URL ?? "";
   return (
+    !url ||
     url === "memory://" ||
     url === "memory" ||
     process.env.REDIS_MEMORY === "1"
@@ -110,6 +111,7 @@ function useMemoryRedis(): boolean {
 /**
  * Singleton Redis client.
  * Use `REDIS_URL=memory://` (or `REDIS_MEMORY=1`) for local/E2E without Upstash.
+ * Missing REDIS_URL also uses memory so seat locks still work on `next dev`.
  */
 export function getRedis(): RedisLike {
   if (!globalForRedis.redis) {
@@ -118,9 +120,11 @@ export function getRedis(): RedisLike {
     } else {
       const url = process.env.REDIS_URL || "redis://localhost:6379";
       globalForRedis.redis = new Redis(url, {
-        maxRetriesPerRequest: 3,
-        enableReadyCheck: true,
-        lazyConnect: false,
+        maxRetriesPerRequest: 1,
+        enableReadyCheck: false,
+        enableOfflineQueue: false,
+        lazyConnect: true,
+        connectTimeout: 1000,
       });
     }
   }

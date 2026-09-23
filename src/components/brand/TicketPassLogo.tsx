@@ -11,8 +11,8 @@ const LOGOS = {
   },
   dark: {
     src: "/brand/ticketpass-logo-dark.png",
-    width: 1024,
-    height: 236,
+    width: 1600,
+    height: 368,
   },
 } as const;
 

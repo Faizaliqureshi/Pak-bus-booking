@@ -1,16 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { TripSeatStatus } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
-import { markTripSeatLocked } from "@/lib/trip-inventory";
-import {
-  SEAT_LOCK_TTL_SECONDS,
-  bookingSeatLockKey,
-  getUpstashRedis,
-} from "@/lib/upstash";
+import { lockSeat } from "@/lib/redis-lock";
 
 export const runtime = "nodejs";
-
-const LOCK_HELD_MESSAGE = "Seat is temporarily locked by another user";
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
@@ -54,93 +45,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const trip = tripId.trim();
-    const seat = seatNumber.trim();
-    const holder = userId.trim();
-
-    const inventory = await prisma.tripSeat.findUnique({
-      where: { tripId_seatNumber: { tripId: trip, seatNumber: seat } },
-      select: { status: true },
-    });
-    if (inventory?.status === TripSeatStatus.BOOKED) {
-      return NextResponse.json(
-        { success: false, message: "Seat is already booked." },
-        { status: 409 },
-      );
-    }
-
-    const hold = await prisma.partnerSeatHold.findUnique({
-      where: { tripId_seatNumber: { tripId: trip, seatNumber: seat } },
-      select: { id: true },
-    });
-    if (hold) {
-      return NextResponse.json(
-        { success: false, message: "Seat is reserved by the operator." },
-        { status: 409 },
-      );
-    }
-
-    const key = bookingSeatLockKey(trip, seat);
-    const redis = getUpstashRedis();
-
-    const acquired = await redis.set(key, holder, {
-      nx: true,
-      ex: SEAT_LOCK_TTL_SECONDS,
-    });
-
-    if (acquired === "OK") {
-      await markTripSeatLocked(trip, seat, holder).catch((err) => {
-        console.error("[POST /api/booking/lock-seat] tripSeat mirror", err);
-      });
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Seat locked successfully.",
-          data: {
-            tripId: trip,
-            seatNumber: seat,
-            userId: holder,
-            ttlSeconds: SEAT_LOCK_TTL_SECONDS,
-            key,
-          },
-        },
-        { status: 200 },
-      );
-    }
-
-    const currentHolder = await redis.get<string>(key);
-    if (currentHolder === holder) {
-      await redis.expire(key, SEAT_LOCK_TTL_SECONDS);
-      await markTripSeatLocked(trip, seat, holder).catch((err) => {
-        console.error("[POST /api/booking/lock-seat] tripSeat mirror", err);
-      });
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Seat lock extended.",
-          data: {
-            tripId: trip,
-            seatNumber: seat,
-            userId: holder,
-            ttlSeconds: SEAT_LOCK_TTL_SECONDS,
-            key,
-            extended: true,
-          },
-        },
-        { status: 200 },
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, message: LOCK_HELD_MESSAGE },
-      { status: 400 },
+    const result = await lockSeat(
+      tripId.trim(),
+      seatNumber.trim(),
+      userId.trim(),
     );
+    if (!result.success) {
+      const conflict =
+        result.message.includes("reserved") ||
+        result.message.includes("booked") ||
+        result.message.includes("held");
+      return NextResponse.json(result, { status: conflict ? 409 : 400 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: result.extended
+        ? "Seat lock extended."
+        : "Seat locked successfully.",
+      data: {
+        tripId: result.tripId,
+        seatNumber: result.seatNumber,
+        userId: result.userId,
+        ttlSeconds: result.ttlSeconds,
+        lockToken: result.lockToken,
+        extended: result.extended,
+      },
+    });
   } catch (error) {
     console.error("[POST /api/booking/lock-seat]", error);
-    const message =
-      error instanceof Error && error.message.includes("UPSTASH_REDIS")
-        ? error.message
-        : "Failed to lock seat.";
-    return NextResponse.json({ success: false, message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Failed to lock seat." },
+      { status: 500 },
+    );
   }
 }

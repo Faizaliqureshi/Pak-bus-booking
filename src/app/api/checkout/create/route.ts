@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PaymentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { generatePnr } from "@/lib/checkout-utils";
-import { buildSeatLockKey } from "@/lib/redis-lock";
-import { getRedis } from "@/lib/redis";
+import { verifySeatsHeldByUser } from "@/lib/trip-inventory";
 
 export const runtime = "nodejs";
 
@@ -21,7 +20,7 @@ function isNonEmptyString(value: unknown): value is string {
 
 /**
  * POST /api/checkout/create
- * Creates a PENDING booking from Redis-held seats and redirects client to checkout.
+ * Creates a PENDING booking from Neon-held seats and redirects client to checkout.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -100,47 +99,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const redis = getRedis();
-    const lockExpiryCandidates: number[] = [];
-
-    for (const seat of seats) {
-      const key = buildSeatLockKey(tripId.trim(), seat);
-      const holder = await redis.get(key);
-      if (holder !== userId.trim()) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: `Seat ${seat} is not locked by you. Please reselect seats.`,
-          },
-          { status: 409 },
-        );
-      }
-      const ttl = await redis.ttl(key);
-      if (ttl > 0) {
-        lockExpiryCandidates.push(Date.now() + ttl * 1000);
-      }
-    }
-
-    const dbLocks = await prisma.seatLock.findMany({
-      where: {
-        tripId: tripId.trim(),
-        userId: userId.trim(),
-        seatNumber: { in: seats },
-      },
-    });
-
-    for (const lock of dbLocks) {
-      lockExpiryCandidates.push(lock.expiresAt.getTime());
-    }
-
-    if (lockExpiryCandidates.length === 0) {
+    const ownership = await verifySeatsHeldByUser(
+      tripId.trim(),
+      seats,
+      userId.trim(),
+    );
+    if (!ownership.ok) {
       return NextResponse.json(
-        { success: false, message: "Seat locks have expired." },
+        {
+          success: false,
+          message: `Seat ${ownership.seatNumber} is not locked by you. Please reselect seats.`,
+        },
         { status: 409 },
       );
     }
 
-    const lockExpiresAt = new Date(Math.min(...lockExpiryCandidates));
+    const lockExpiresAt = ownership.expiresAt;
     if (lockExpiresAt.getTime() <= Date.now()) {
       return NextResponse.json(
         { success: false, message: "Seat locks have expired." },

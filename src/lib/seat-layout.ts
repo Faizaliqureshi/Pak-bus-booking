@@ -158,12 +158,12 @@ export function buildCoachRows(
   return buildExecutive22Rows(totalSeats);
 }
 
-export function isSleeperLayout(layoutType: string): boolean {
-  return layoutType.toUpperCase().includes("SLEEPER");
+export function isSleeperLayout(layoutType?: string | null): boolean {
+  return Boolean(layoutType?.toUpperCase().includes("SLEEPER"));
 }
 
-export function isTwoByOneLayout(layoutType: string): boolean {
-  const t = layoutType.toUpperCase();
+export function isTwoByOneLayout(layoutType?: string | null): boolean {
+  const t = layoutType?.toUpperCase() ?? "";
   return t.includes("2X1") && !t.includes("SLEEPER");
 }
 

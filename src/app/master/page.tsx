@@ -37,6 +37,33 @@ type OverviewData = {
     pendingBookings: number;
     walletAccounts: number;
     walletBalancesTotal: number;
+    totalRevenue: number;
+    totalOutstanding: number;
+    totalPartnerProfit: number;
+    totalCommission: number;
+    totalCleared: number;
+    byPartner: Array<{
+      id: string;
+      name: string;
+      email: string;
+      revenue: number;
+      commission: number;
+      profit: number;
+      cleared: number;
+      outstanding: number;
+      paidBookings: number;
+    }>;
+    byFleet: Array<{
+      id: string;
+      busNumber: string;
+      operatorId: string;
+      operatorName: string;
+      revenue: number;
+      commission: number;
+      profit: number;
+      outstanding: number;
+      paidBookings: number;
+    }>;
   };
   admins: Array<{
     id: string;
@@ -587,53 +614,60 @@ export default function MasterHomePage() {
       ) : null}
 
       {tab === "finance" ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Kpi
-            label="Collected revenue"
-            value={formatPkr(finance.paidRevenue)}
-            hint={`${finance.paidBookings} settled bookings`}
+        <div className="space-y-6">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Kpi
+              label="Total revenue"
+              value={formatPkr(finance.totalRevenue)}
+              hint={`${finance.paidBookings} paid bookings collected`}
+            />
+            <Kpi
+              label="Total outstanding payouts"
+              value={formatPkr(finance.totalOutstanding)}
+              hint={`${formatPkr(finance.totalCleared)} already cleared to partners`}
+            />
+            <Kpi
+              label="Total partner profit"
+              value={formatPkr(finance.totalPartnerProfit)}
+              hint={`${formatPkr(finance.totalCommission)} TicketPass commission`}
+            />
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-2">
+            <Panel title="Partner-wise revenue & outstanding payouts">
+              <FinanceTable
+                empty="No partners yet."
+                columns={["Partner", "Revenue", "Partner profit", "Outstanding"]}
+                rows={finance.byPartner.map((p) => ({
+                  id: p.id,
+                  label: p.name,
+                  sub: `${p.email} · ${p.paidBookings} paid`,
+                  revenue: p.revenue,
+                  mid: p.profit,
+                  outstanding: p.outstanding,
+                }))}
+              />
+            </Panel>
+            <Panel title="Fleet-wise revenue & outstanding payouts">
+              <FinanceTable
+                empty="No coaches registered."
+                columns={["Bus", "Revenue", "Partner", "Outstanding"]}
+                rows={finance.byFleet.map((b) => ({
+                  id: b.id,
+                  label: b.busNumber,
+                  sub: `${b.paidBookings} paid bookings`,
+                  revenue: b.revenue,
+                  midLabel: b.operatorName,
+                  outstanding: b.outstanding,
+                }))}
+              />
+            </Panel>
+          </div>
+
+          <PartnerPayoutForm
+            partners={data.partners}
+            onRecorded={() => void load()}
           />
-          <Kpi
-            label="Pending checkout value"
-            value={formatPkr(finance.pendingValue)}
-            hint={`${finance.pendingBookings} open holds / unpaid drafts`}
-          />
-          <Kpi
-            label="Passenger wallets"
-            value={formatPkr(finance.walletBalancesTotal)}
-            hint={`${finance.walletAccounts} wallet accounts`}
-          />
-          <PartnerPayoutForm partners={data.partners} />
-          <Panel title="Accounts summary" className="sm:col-span-2 lg:col-span-3">
-            <dl className="grid gap-3 px-4 py-4 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-[#0a2f6b]/55">Staff payroll accounts</dt>
-                <dd className="font-semibold">
-                  {summary.totalStaff} active staff logins
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[#0a2f6b]/55">Partner commercial accounts</dt>
-                <dd className="font-semibold">
-                  {summary.partners} operators with fleet access
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[#0a2f6b]/55">Booking ledger</dt>
-                <dd className="font-semibold">
-                  {summary.bookingsTotal} records · {formatPkr(finance.paidRevenue)}{" "}
-                  realised
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[#0a2f6b]/55">Refunds / failures</dt>
-                <dd className="font-semibold">
-                  {summary.bookingsRefunded} refunded · {summary.bookingsFailed}{" "}
-                  failed
-                </dd>
-              </div>
-            </dl>
-          </Panel>
         </div>
       ) : null}
     </div>
@@ -757,10 +791,76 @@ function StaffTable({
   );
 }
 
+function FinanceTable({
+  columns,
+  rows,
+  empty,
+}: {
+  columns: [string, string, string, string];
+  rows: Array<{
+    id: string;
+    label: string;
+    sub: string;
+    revenue: number;
+    mid?: number;
+    midLabel?: string;
+    outstanding: number;
+  }>;
+  empty: string;
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full text-left text-sm">
+        <thead className="bg-[#f3f6fb] text-[#0a2f6b]/70">
+          <tr>
+            {columns.map((col) => (
+              <th key={col} className="px-4 py-3 font-medium">
+                {col}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td
+                colSpan={4}
+                className="px-4 py-8 text-center text-[#0a2f6b]/50"
+              >
+                {empty}
+              </td>
+            </tr>
+          ) : (
+            rows.map((row) => (
+              <tr key={row.id} className="border-t border-[#0a2f6b]/8">
+                <td className="px-4 py-3">
+                  <p className="font-medium">{row.label}</p>
+                  <p className="text-xs text-[#0a2f6b]/50">{row.sub}</p>
+                </td>
+                <td className="px-4 py-3 font-medium">
+                  {formatPkr(row.revenue)}
+                </td>
+                <td className="px-4 py-3">
+                  {row.midLabel ?? formatPkr(row.mid ?? 0)}
+                </td>
+                <td className="px-4 py-3 font-medium">
+                  {formatPkr(row.outstanding)}
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function PartnerPayoutForm({
   partners,
+  onRecorded,
 }: {
   partners: OverviewData["partners"];
+  onRecorded?: () => void;
 }) {
   const [operatorId, setOperatorId] = useState(partners[0]?.id ?? "");
   const [amount, setAmount] = useState("");
@@ -791,6 +891,7 @@ function PartnerPayoutForm({
       setMessage(`Cleared ${json.data.reference} to partner.`);
       setAmount("");
       setNote("");
+      onRecorded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed.");
     } finally {

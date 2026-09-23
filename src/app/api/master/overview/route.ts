@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PaymentStatus, UserRole } from "@prisma/client";
 import { getAdminUser } from "@/lib/admin-auth";
+import { platformFinanceSnapshot } from "@/lib/partner-ops";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -29,6 +30,7 @@ export async function GET() {
       pendingAgg,
       recentBookings,
       walletAgg,
+      ledger,
     ] = await Promise.all([
       prisma.user.findMany({
         where: { role: UserRole.ADMIN },
@@ -139,6 +141,7 @@ export async function GET() {
         _sum: { balance: true },
         _count: { _all: true },
       }),
+      platformFinanceSnapshot(),
     ]);
 
     const statusMap = Object.fromEntries(
@@ -170,6 +173,13 @@ export async function GET() {
           pendingBookings: pendingAgg._count._all,
           walletAccounts: walletAgg._count._all,
           walletBalancesTotal: Number(walletAgg._sum.balance ?? 0),
+          totalRevenue: ledger.totalRevenue,
+          totalOutstanding: ledger.totalOutstanding,
+          totalPartnerProfit: ledger.totalPartnerProfit,
+          totalCommission: ledger.totalCommission,
+          totalCleared: ledger.totalCleared,
+          byPartner: ledger.byPartner,
+          byFleet: ledger.byFleet,
         },
         admins: admins.map((a) => ({
           id: a.id,

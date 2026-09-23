@@ -71,14 +71,27 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   }
 
-  await prisma.partnerSeatHold.createMany({
-    data: seatNumbers.map((seatNumber) => ({
-      tripId: trip.id,
-      operatorId: partner.id,
-      seatNumber,
-    })),
-    skipDuplicates: true,
-  });
+  try {
+    await prisma.$transaction(
+      seatNumbers.map((seatNumber) =>
+        prisma.partnerSeatHold.upsert({
+          where: { tripId_seatNumber: { tripId: trip.id, seatNumber } },
+          create: {
+            tripId: trip.id,
+            operatorId: partner.id,
+            seatNumber,
+          },
+          update: { operatorId: partner.id },
+        }),
+      ),
+    );
+  } catch (error) {
+    console.error("[POST /api/partner/trips/:id/holds]", error);
+    return NextResponse.json(
+      { success: false, message: "Could not reserve that seat." },
+      { status: 500 },
+    );
+  }
 
   const next = await tripSeatSnapshot(trip.id, trip.bus.totalSeats);
   return NextResponse.json({ success: true, data: { seats: next.seats } });

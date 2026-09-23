@@ -302,8 +302,17 @@ export function TripResultCard({
               operatorName={trip.operator.name}
             />
           ) : (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-              Demo user not found. Run <code>npx prisma db seed</code>.
+            <div className="rounded-xl border border-[#0a2f6b]/15 bg-[#f8fafc] p-4 text-sm text-[#0a2f6b]">
+              {trip.boardingStop && trip.dropStop ? (
+                <>
+                  Sign in to reserve a seat on this departure.{" "}
+                  <a href="/auth/sign-in" className="font-medium underline underline-offset-2">
+                    Passenger login
+                  </a>
+                </>
+              ) : (
+                <>This live trip is missing boarding stops, so seats cannot be reserved yet.</>
+              )}
             </div>
           )}
         </div>

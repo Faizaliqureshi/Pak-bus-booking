@@ -122,12 +122,14 @@ export function SearchResultsClient({
       setExpandedTripId(null);
       try {
         const params = new URLSearchParams({ origin, destination, date });
-        const [tripsRes, userRes] = await Promise.all([
+        const [tripsRes, meRes, demoRes] = await Promise.all([
           fetch(`/api/trips/search?${params}`),
+          fetch("/api/auth/me"),
           fetch("/api/demo-user"),
         ]);
         const tripsJson = await tripsRes.json();
-        const userJson = await userRes.json();
+        const meJson = await meRes.json();
+        const demoJson = await demoRes.json();
 
         if (!tripsRes.ok || !tripsJson.success) {
           throw new Error(tripsJson.message || "Could not load trips.");
@@ -144,8 +146,12 @@ export function SearchResultsClient({
             setPriceRange([min, paddedMax]);
           }
         }
-        if (userRes.ok && userJson.success && !cancelled) {
-          setUserId(userJson.data.id);
+        if (!cancelled) {
+          if (meRes.ok && meJson.success && meJson.data?.id) {
+            setUserId(meJson.data.id);
+          } else if (demoRes.ok && demoJson.success && demoJson.data?.id) {
+            setUserId(demoJson.data.id);
+          }
         }
       } catch (err) {
         if (!cancelled) {
