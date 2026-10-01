@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bus, CheckCircle2, Download, FileText, Loader2, Search } from "lucide-react";
+import { Bus, CheckCircle2, Download, Loader2, Search } from "lucide-react";
 import { formatCardDate, formatTime } from "@/lib/booking-utils";
 import { Input } from "@/components/ui/input";
 import { BusReviewForm } from "@/components/account/BusReviewForm";
@@ -26,6 +26,11 @@ export type AccountBooking = {
   routeName: string;
   issued: boolean;
   expired: boolean;
+  seats?: string[];
+  cancellable?: boolean;
+  refundPercent?: number;
+  estimatedRefund?: number;
+  cancelReason?: string | null;
   review: { rating: number; comment: string | null } | null;
 };
 
@@ -149,7 +154,6 @@ function BookingCard({
   const issued = booking.issued;
   const showExpired = mode === "all" && booking.expired && issued;
   const ticketPdf = `/api/account/bookings/${encodeURIComponent(booking.pnr)}/ticket`;
-  const invoicePdf = `/api/account/bookings/${encodeURIComponent(booking.pnr)}/invoice`;
 
   return (
     <li className="rounded-xl border border-[#e6ebf2] bg-white p-4 shadow-sm sm:p-5">
@@ -213,28 +217,28 @@ function BookingCard({
           </div>
           {issued ? (
             <div className="flex w-full flex-col gap-2">
+              <Link
+                href={`/ticket/${encodeURIComponent(booking.pnr)}`}
+                className="inline-flex h-10 items-center justify-center rounded-md bg-[#0a2f6b] px-4 text-sm font-semibold text-white hover:bg-[#08305f]"
+              >
+                View E-Ticket
+              </Link>
               <a
                 href={ticketPdf}
                 download
-                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-[#0a2f6b] px-4 text-sm font-semibold text-white hover:bg-[#08305f]"
-              >
-                <Download className="size-3.5" />
-                E-ticket PDF
-              </a>
-              <a
-                href={invoicePdf}
-                download
                 className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md border border-[#0a2f6b] px-4 text-sm font-semibold text-[#0a2f6b] hover:bg-[#0a2f6b] hover:text-white"
               >
-                <FileText className="size-3.5" />
-                Invoice PDF
+                <Download className="size-3.5" />
+                Download E-Ticket
               </a>
-              <Link
-                href={`/ticket/${encodeURIComponent(booking.pnr)}`}
-                className="text-center text-xs font-medium text-[#0a2f6b] underline-offset-2 hover:underline"
-              >
-                View ticket
-              </Link>
+              {booking.cancellable ? (
+                <Link
+                  href={`/account/cancel-booking?pnr=${encodeURIComponent(booking.pnr)}`}
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-red-700 px-4 text-sm font-semibold text-red-800 hover:bg-red-50"
+                >
+                  Cancel seats
+                </Link>
+              ) : null}
             </div>
           ) : (
             <Link

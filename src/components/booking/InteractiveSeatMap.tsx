@@ -15,10 +15,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatPkr, busTypeLabel } from "@/lib/booking-utils";
 import {
+  adjacentSeatNumbers,
   buildCoachRows,
   buildSleeperDecks,
   isSleeperLayout,
-  pairMate,
   sleeperLabelFor,
   type CoachRow,
   type SleeperDeck,
@@ -76,8 +76,8 @@ interface SelectedSeatState {
 }
 
 
-const FEMALE_ADJACENT_MSG =
-  "Seat reserved for female passenger adjacent to another female traveler.";
+const MIXED_GENDER_MSG =
+  "Male and female passengers from different bookings cannot sit together. Book adjacent mixed seats in the same booking.";
 
 function visualStatus(
   seat: ApiSeat | undefined,
@@ -283,27 +283,35 @@ export function InteractiveSeatMap({
           return;
         }
 
-        // Pakistani cultural seating: male cannot take seat beside a female traveller.
-        if (gender === "MALE") {
-          const mate = pairMate(seatNumber, rows, isSleeper);
-          if (mate) {
-            const mateApi = seatMap.get(mate);
-            const mateSelected = selected.find((s) => s.seatNumber === mate);
-            const mateIsFemaleBooked =
-              mateApi?.status === "BOOKED" && mateApi.gender === "FEMALE";
-            const mateIsFemaleHold = mateSelected?.gender === "FEMALE";
-            if (mateIsFemaleBooked || mateIsFemaleHold) {
-              setError(FEMALE_ADJACENT_MSG);
-              setBusySeat(null);
-              return;
-            }
-          }
+        const mates = payload
+          ? adjacentSeatNumbers(seatNumber, payload.totalSeats, layoutType)
+          : [];
+        const mixedBesideOther = mates.some((mate) => {
+          if (selected.some((s) => s.seatNumber === mate)) return false;
+          const mateApi = seatMap.get(mate);
+          if (mateApi?.status !== "BOOKED") return false;
+          return (
+            (gender === "MALE" && mateApi.gender === "FEMALE") ||
+            (gender === "FEMALE" && mateApi.gender === "MALE")
+          );
+        });
+        if (mixedBesideOther) {
+          setError(MIXED_GENDER_MSG);
+          setBusySeat(null);
+          return;
         }
 
         const res = await fetch("/api/seats/lock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tripId, seatNumber, userId }),
+          body: JSON.stringify({
+            tripId,
+            seatNumber,
+            userId,
+            gender,
+            boardingStopId,
+            dropStopId,
+          }),
         });
         const json = await res.json();
         if (!res.ok || !json.success) {
@@ -402,6 +410,10 @@ export function InteractiveSeatMap({
           >
             Male
           </button>
+          <p className="w-full text-[11px] text-[#0a2f6b]/50">
+            Different bookings cannot mix male and female on adjacent seats.
+            The same booking of 2–3 seats may sit together.
+          </p>
         </div>
 
         {earliestExpiry && remainingMs > 0 ? (

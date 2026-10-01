@@ -27,6 +27,7 @@ const NAV = [
 
 const PROFILE_LINKS = [
   { href: "/account/bookings", label: "Bookings" },
+  { href: "/account/cancel-booking", label: "Cancel seats" },
   { href: "/account/purchase-history", label: "Purchase History" },
   { href: "/account/wallet", label: "Wallet" },
   { href: "/account/track-bus", label: "Track Bus" },

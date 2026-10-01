@@ -4,7 +4,6 @@ import type { BookingDocument } from "@/lib/booking-documents";
 import { formatTime } from "@/lib/booking-utils";
 import { maskCnic } from "@/lib/checkout-utils";
 import { HELPLINE_DISPLAY } from "@/lib/helpline";
-import { buildBrandedInvoicePdf } from "@/lib/invoice-layout";
 
 const NAVY = rgb(10 / 255, 47 / 255, 107 / 255);
 const GOLD = rgb(245 / 255, 166 / 255, 35 / 255);
@@ -213,40 +212,6 @@ export async function buildETicketPdf(doc: BookingDocument): Promise<Uint8Array>
   );
 
   return pdf.save();
-}
-
-export async function buildInvoicePdf(doc: BookingDocument): Promise<Uint8Array> {
-  const notes = [
-    `PNR ${doc.pnr}`,
-    `${doc.operatorName} | ${doc.busNumber} | Seats ${doc.passengers
-      .map((p) => p.seatNumber)
-      .join(", ")}`,
-    `Travel ${travelDate(doc.departureTime)}`,
-    ...doc.passengers.map((p) => `${p.name}  |  Seat ${p.seatNumber}`),
-  ];
-  if (doc.fare.flatFee > 0 || doc.fare.percentageAmount > 0) {
-    notes.splice(
-      1,
-      0,
-      `Includes gateway fee ${money(doc.fare.flatFee + doc.fare.percentageAmount)} (${
-        doc.fare.gatewayName ?? "PSP"
-      })`,
-    );
-  }
-
-  return buildBrandedInvoicePdf({
-    title: "TAX INVOICE",
-    reference: doc.invoiceNumber,
-    billedName: doc.passengers[0]?.name ?? "Passenger",
-    billedPhone: doc.contactPhone ?? "-",
-    billedEmail: doc.contactEmail,
-    paid: true,
-    serviceLine: `BUS | ${doc.originCity} to ${doc.destinationCity}`,
-    serviceDetail: doc.routeName,
-    amountPkr: doc.fare.totalPaid,
-    issuedAt: new Date(doc.issuedAt),
-    notes,
-  });
 }
 
 export function pdfResponse(bytes: Uint8Array, filename: string): Response {

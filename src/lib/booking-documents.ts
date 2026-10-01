@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 
 export type BookingDocument = {
   pnr: string;
-  invoiceNumber: string;
   issuedAt: string;
   paymentMethod: string | null;
   contactEmail: string | null;
@@ -81,7 +80,6 @@ export async function loadOwnedPaidBooking(
 
   return {
     pnr: booking.pnr,
-    invoiceNumber: `INV-${booking.pnr}`,
     issuedAt: booking.createdAt.toISOString(),
     paymentMethod: booking.paymentMethod,
     contactEmail: booking.contactEmail,

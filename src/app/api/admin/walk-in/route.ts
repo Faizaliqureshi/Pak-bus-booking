@@ -12,6 +12,7 @@ import { isSegmentOverlapping } from "@/lib/seat-availability";
 import { prisma } from "@/lib/prisma";
 import { adminJwtResponse, requireAdminJwt } from "@/lib/rbac";
 import { markTripSeatsBooked, provisionTripSeats } from "@/lib/trip-inventory";
+import { assertNoMixedGenderBesideOthers } from "@/lib/seat-gender";
 
 export const runtime = "nodejs";
 
@@ -123,6 +124,19 @@ export async function POST(request: NextRequest) {
         { success: false, message: "Seat unavailable for this segment." },
         { status: 409 },
       );
+    }
+
+    const mixed = await assertNoMixedGenderBesideOthers({
+      tripId,
+      layoutType: trip.bus.layoutType,
+      totalSeats: trip.bus.totalSeats,
+      seats: [{ seatNumber, gender }],
+      boardingOrder: boarding.stopOrder,
+      dropOrder: drop.stopOrder,
+      sameBookingSeatNumbers: [seatNumber],
+    });
+    if (mixed) {
+      return NextResponse.json({ success: false, message: mixed }, { status: 409 });
     }
 
     let pnr = generatePnr();

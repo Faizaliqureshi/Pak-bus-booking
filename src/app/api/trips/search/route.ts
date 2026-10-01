@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { normalizeCityForSearch } from "@/lib/booking-utils";
+import {
+  normalizeCityForSearch,
+  textMatchesSearchCity,
+} from "@/lib/booking-utils";
 import { averageRating, photoPublicUrl } from "@/lib/bus-catalog";
 
 export const runtime = "nodejs";
@@ -11,6 +14,44 @@ function dayBoundsPkt(dateStr: string): { start: Date; end: Date } | null {
   const end = new Date(`${dateStr}T23:59:59.999+05:00`);
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
   return { start, end };
+}
+
+function pickBoardingDrop(
+  stops: { id: string; stationName: string; stopOrder: number }[],
+  originCity: string,
+  destinationCity: string,
+  originCities: string[],
+  destinationCities: string[],
+) {
+  const first = stops[0] ?? null;
+  const last = stops[stops.length - 1] ?? null;
+  const originExact = originCities.includes(originCity);
+  const destExact = destinationCities.includes(destinationCity);
+
+  if (originExact && destExact) {
+    return { boarding: first, drop: last };
+  }
+
+  let boarding = originExact ? first : null;
+  for (const stop of stops) {
+    if (!boarding && textMatchesSearchCity(stop.stationName, originCities)) {
+      boarding = stop;
+      continue;
+    }
+    if (
+      boarding &&
+      stop.id !== boarding.id &&
+      textMatchesSearchCity(stop.stationName, destinationCities)
+    ) {
+      return { boarding, drop: stop };
+    }
+  }
+
+  if (boarding && destExact && last && last.id !== boarding.id) {
+    return { boarding, drop: last };
+  }
+
+  return null;
 }
 
 /**
@@ -60,10 +101,6 @@ export async function GET(request: NextRequest) {
           gte: bounds.start,
           lte: bounds.end,
         },
-        route: {
-          originCity: { in: originCities },
-          destinationCity: { in: destinationCities },
-        },
       },
       include: {
         bus: {
@@ -96,14 +133,24 @@ export async function GET(request: NextRequest) {
       orderBy: { departureTime: "asc" },
     });
 
-    const data = trips.map((trip) => {
+    const serialized = trips.map((trip) => {
+      const match = pickBoardingDrop(
+        trip.route.stops,
+        trip.route.originCity,
+        trip.route.destinationCity,
+        originCities,
+        destinationCities,
+      );
       const firstStop = trip.route.stops[0];
       const lastStop = trip.route.stops[trip.route.stops.length - 1];
+      const boarding = match?.boarding ?? firstStop;
+      const drop = match?.drop ?? lastStop;
       const durationMs =
         trip.arrivalTime.getTime() - trip.departureTime.getTime();
 
       return {
         id: trip.id,
+        matchesCorridor: Boolean(match),
         departureTime: trip.departureTime.toISOString(),
         arrivalTime: trip.arrivalTime.toISOString(),
         durationMs,
@@ -135,18 +182,18 @@ export async function GET(request: NextRequest) {
           destinationCity: trip.route.destinationCity,
           distanceKm: trip.route.distanceKm,
         },
-        boardingStop: firstStop
+        boardingStop: boarding
           ? {
-              id: firstStop.id,
-              name: firstStop.stationName,
-              order: firstStop.stopOrder,
+              id: boarding.id,
+              name: boarding.stationName,
+              order: boarding.stopOrder,
             }
           : null,
-        dropStop: lastStop
+        dropStop: drop
           ? {
-              id: lastStop.id,
-              name: lastStop.stationName,
-              order: lastStop.stopOrder,
+              id: drop.id,
+              name: drop.stationName,
+              order: drop.stopOrder,
             }
           : null,
         stops: trip.route.stops.map((s) => ({
@@ -157,7 +204,13 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({ success: true, data }, { status: 200 });
+    const data = serialized.filter((trip) => trip.matchesCorridor);
+    const alsoOnDate = serialized.filter((trip) => !trip.matchesCorridor);
+
+    return NextResponse.json(
+      { success: true, data, alsoOnDate },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("[GET /api/trips/search]", error);
     return NextResponse.json(

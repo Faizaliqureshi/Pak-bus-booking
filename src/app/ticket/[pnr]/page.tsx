@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import { PaymentStatus } from "@prisma/client";
 import { ETicketView } from "@/components/booking/ETicketView";
+import {
+  getCompanyPolicy,
+  quoteCompanyRefund,
+} from "@/lib/cancel-policy";
 import { prisma } from "@/lib/prisma";
 
 interface TicketPageProps {
@@ -24,7 +28,7 @@ export default async function TicketPage({ params }: TicketPageProps) {
         include: {
           bus: {
             include: {
-              operator: { select: { name: true } },
+              operator: { select: { id: true, name: true } },
             },
           },
           route: true,
@@ -41,6 +45,20 @@ export default async function TicketPage({ params }: TicketPageProps) {
     notFound();
   }
 
+  const companyName = booking.trip.bus.operator.name.replace(
+    /\s+Operator$/i,
+    "",
+  );
+  const policy = await getCompanyPolicy(
+    booking.trip.bus.operatorId,
+    companyName,
+  );
+  const quote = quoteCompanyRefund({
+    policy,
+    departure: booking.trip.departureTime,
+    fare: Number(booking.totalPrice),
+    actor: "passenger",
+  });
   const first = booking.tickets[0];
   const qrPayload =
     booking.qrCodeUrl ||
@@ -58,10 +76,10 @@ export default async function TicketPage({ params }: TicketPageProps) {
           paymentMethod: booking.paymentMethod,
           contactEmail: booking.contactEmail,
           contactPhone: booking.contactPhone,
-          operatorName: booking.trip.bus.operator.name.replace(
-            /\s+Operator$/i,
-            "",
-          ),
+          operatorName: companyName,
+          companyName,
+          canCancel: quote.allowed,
+          refundPercent: quote.refundPercent,
           busNumber: booking.trip.bus.busNumber,
           routeName: booking.trip.route.name,
           departureTime: booking.trip.departureTime.toISOString(),

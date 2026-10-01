@@ -10,9 +10,9 @@ const LOGOS = {
     height: 236,
   },
   dark: {
-    src: "/brand/ticketpass-logo-dark.png",
-    width: 1600,
-    height: 368,
+    src: "/brand/ticketpass-logo-on-blue.png",
+    width: 1024,
+    height: 235,
   },
 } as const;
 
@@ -54,6 +54,7 @@ export function TicketPassLogo({
         priority={size !== "md"}
         className={cn(
           "block max-w-none shrink-0 object-contain object-left",
+          tone === "dark" && "bg-[#0a2f6b]",
           SIZES[size],
         )}
       />

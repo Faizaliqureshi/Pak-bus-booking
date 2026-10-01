@@ -76,10 +76,45 @@ export default function PartnerTripDeskPage() {
   }, [load]);
 
   async function toggleSeat(seat: Seat) {
-    if (seat.status === "PAID" || seat.status === "LOCKED") return;
+    if (seat.status === "LOCKED") return;
     setBusy(seat.seatNumber);
     setError(null);
     try {
+      if (seat.status === "PAID") {
+        const pnr =
+          bookings.find((b) => b.seats.includes(seat.seatNumber))?.pnr ??
+          "this booking";
+        if (
+          !window.confirm(
+            `Cancel paid seat ${seat.seatNumber} (${pnr})? The fare is refunded to the passenger wallet and the seat goes back on sale.`,
+          )
+        ) {
+          setBusy(null);
+          return;
+        }
+        const res = await fetch(`/api/partner/trips/${tripId}/cancel-seats`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ seatNumbers: [seat.seatNumber] }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(json.message || "Could not cancel that seat.");
+        }
+        setSeats(json.data.seats);
+        setBookings((prev) =>
+          prev
+            .map((b) => ({
+              ...b,
+              seats: b.seats.filter((s) => s !== seat.seatNumber),
+              passengers: b.passengers.filter(
+                (p) => p.seatNumber !== seat.seatNumber,
+              ),
+            }))
+            .filter((b) => b.seats.length > 0),
+        );
+        return;
+      }
       const res = await fetch(`/api/partner/trips/${tripId}/holds`, {
         method: seat.status === "RESERVED" ? "DELETE" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -138,7 +173,7 @@ export default function PartnerTripDeskPage() {
         <div className="mt-4 flex flex-wrap gap-3 text-xs text-[#0a2f6b]/70">
           <Legend className="border-[#9aa8bc] bg-white" label="Open" />
           <Legend className="border-[#0a2f6b] bg-[#0a2f6b] text-white" label="Your hold" />
-          <Legend className="border-emerald-700 bg-emerald-600 text-white" label="Paid" />
+          <Legend className="border-emerald-700 bg-emerald-600 text-white" label="Paid — click to cancel" />
           <Legend className="border-amber-400 bg-amber-200" label="Passenger hold" />
         </div>
         <PartnerCoachGrid
@@ -180,7 +215,27 @@ export default function PartnerTripDeskPage() {
                       <p>{b.passenger}</p>
                       <p className="text-xs text-[#0a2f6b]/50">{b.phone}</p>
                     </td>
-                    <td className="px-4 py-3">{b.seats.join(", ")}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {b.seats.map((seatNumber) => (
+                          <button
+                            key={seatNumber}
+                            type="button"
+                            disabled={busy === seatNumber}
+                            onClick={() =>
+                              void toggleSeat({
+                                seatNumber,
+                                status: "PAID",
+                              })
+                            }
+                            className="rounded-full border border-emerald-700 bg-emerald-600 px-2.5 py-0.5 text-xs font-semibold text-white hover:bg-red-700"
+                            title={`Cancel seat ${seatNumber}`}
+                          >
+                            {seatNumber}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
                     <td className="px-4 py-3">{formatPkr(b.totalPrice)}</td>
                   </tr>
                 ))
@@ -241,9 +296,7 @@ function PartnerCoachGrid({
         key={key}
         type="button"
         disabled={
-          seat.status === "PAID" ||
-          seat.status === "LOCKED" ||
-          busy === seat.seatNumber
+          seat.status === "LOCKED" || busy === seat.seatNumber
         }
         onClick={() => onToggle(seat)}
         data-testid={`partner-seat-${seatNumber}`}
@@ -254,7 +307,7 @@ function PartnerCoachGrid({
           seat.status === "RESERVED" &&
             "border-[#0a2f6b] bg-[#0a2f6b] text-white",
           seat.status === "PAID" &&
-            "cursor-not-allowed border-emerald-700 bg-emerald-600 text-white",
+            "border-emerald-700 bg-emerald-600 text-white hover:bg-emerald-700",
           seat.status === "LOCKED" &&
             "cursor-not-allowed border-amber-400 bg-amber-200 text-amber-950",
         )}

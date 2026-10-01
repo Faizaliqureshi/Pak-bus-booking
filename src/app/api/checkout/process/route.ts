@@ -15,6 +15,7 @@ import { sendLocalSMS, sendWhatsAppTicket } from "@/lib/notifications";
 import { unlockSeat } from "@/lib/redis-lock";
 import { notifyPartnerBookingPaid } from "@/lib/partner-notify";
 import { markTripSeatsBooked } from "@/lib/trip-inventory";
+import { assertNoMixedGenderBesideOthers } from "@/lib/seat-gender";
 
 export const runtime = "nodejs";
 
@@ -115,6 +116,9 @@ export async function POST(request: NextRequest) {
               include: {
                 operator: { select: { name: true } },
               },
+            },
+            route: {
+              include: { stops: { select: { id: true, stopOrder: true } } },
             },
           },
         },
@@ -237,6 +241,33 @@ export async function POST(request: NextRequest) {
         gender: passenger.gender as Gender,
         cnic: formatCnic(passenger.cnic),
       });
+    }
+
+    const boarding = booking.trip.route.stops.find(
+      (s) => s.id === booking.boardingStopId,
+    );
+    const drop = booking.trip.route.stops.find(
+      (s) => s.id === booking.dropStopId,
+    );
+    if (boarding && drop) {
+      const mixed = await assertNoMixedGenderBesideOthers({
+        tripId: booking.tripId,
+        layoutType: booking.trip.bus.layoutType,
+        totalSeats: booking.trip.bus.totalSeats,
+        seats: normalizedPassengers.map((p) => ({
+          seatNumber: p.seatNumber,
+          gender: p.gender,
+        })),
+        boardingOrder: boarding.stopOrder,
+        dropOrder: drop.stopOrder,
+        sameBookingSeatNumbers: normalizedPassengers.map((p) => p.seatNumber),
+      });
+      if (mixed) {
+        return NextResponse.json(
+          { success: false, message: mixed },
+          { status: 409 },
+        );
+      }
     }
 
     // Simulate local wallet / card authorization

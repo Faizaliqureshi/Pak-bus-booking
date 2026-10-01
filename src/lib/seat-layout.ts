@@ -167,6 +167,19 @@ export function isTwoByOneLayout(layoutType?: string | null): boolean {
   return t.includes("2X1") && !t.includes("SLEEPER");
 }
 
+function neighborsFromIndexes(
+  seats: (string | null)[],
+  pairs: [number, number][],
+  seatNumber: string,
+): string[] {
+  const found: string[] = [];
+  for (const [a, b] of pairs) {
+    if (seats[a] === seatNumber && seats[b]) found.push(seats[b]);
+    if (seats[b] === seatNumber && seats[a]) found.push(seats[a]);
+  }
+  return found;
+}
+
 /** Adjacent seat across the same pair (window ↔ aisle). */
 export function pairMate(
   seatNumber: string,
@@ -174,26 +187,56 @@ export function pairMate(
   sleeper: boolean,
 ): string | null {
   if (sleeper) return null;
+  return (
+    adjacentSeatNumbersFromRows(seatNumber, rows)[0] ?? null
+  );
+}
+
+function adjacentSeatNumbersFromRows(
+  seatNumber: string,
+  rows: CoachRow[],
+): string[] {
   for (const row of rows) {
     if (row.fullWidth) {
-      const pairs: [number, number][] = [
-        [0, 1],
-        [3, 4],
-      ];
-      for (const [a, b] of pairs) {
-        if (row.seats[a] === seatNumber) return row.seats[b];
-        if (row.seats[b] === seatNumber) return row.seats[a];
+      const consecutive: [number, number][] = [];
+      for (let i = 0; i < row.seats.length - 1; i++) {
+        consecutive.push([i, i + 1]);
       }
+      const hits = neighborsFromIndexes(row.seats, consecutive, seatNumber);
+      if (hits.length > 0 || row.seats.includes(seatNumber)) return hits;
       continue;
     }
     const pairs: [number, number][] = [
       [0, 1],
       [2, 3],
     ];
-    for (const [a, b] of pairs) {
-      if (row.seats[a] === seatNumber) return row.seats[b];
-      if (row.seats[b] === seatNumber) return row.seats[a];
-    }
+    const hits = neighborsFromIndexes(row.seats, pairs, seatNumber);
+    if (hits.length > 0 || row.seats.includes(seatNumber)) return hits;
   }
-  return null;
+  return [];
+}
+
+/** Seats that sit together: window/aisle pair, bench neighbors, or sleeper berths. */
+export function adjacentSeatNumbers(
+  seatNumber: string,
+  totalSeats: number,
+  layoutType: string,
+): string[] {
+  if (isSleeperLayout(layoutType)) {
+    const found: string[] = [];
+    for (const deck of buildSleeperDecks(totalSeats)) {
+      for (const row of deck.rows) {
+        const nums = row.berths.map((b) => b.seatNumber);
+        const index = nums.indexOf(seatNumber);
+        if (index < 0) continue;
+        if (index > 0) found.push(nums[index - 1]);
+        if (index < nums.length - 1) found.push(nums[index + 1]);
+      }
+    }
+    return found;
+  }
+  return adjacentSeatNumbersFromRows(
+    seatNumber,
+    buildCoachRows(totalSeats, layoutType),
+  );
 }

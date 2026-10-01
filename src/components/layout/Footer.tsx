@@ -48,7 +48,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="mt-auto border-t border-[#0a2f6b]/10 bg-[#0a2f6b] text-white">
+    <footer className="mt-auto border-t border-white/10 bg-[#0a2f6b] text-white">
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-4">
         <div>
           <TicketPassLogo tone="dark" size="md" tagline />

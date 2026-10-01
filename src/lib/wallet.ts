@@ -9,6 +9,33 @@ export async function getOrCreateWallet(userId: string) {
   });
 }
 
+export async function creditWalletRefund(
+  userId: string,
+  amount: number,
+  description: string,
+  reference: string,
+) {
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const wallet = await getOrCreateWallet(userId);
+  const [updated] = await prisma.$transaction([
+    prisma.wallet.update({
+      where: { id: wallet.id },
+      data: { balance: { increment: amount } },
+    }),
+    prisma.walletTransaction.create({
+      data: {
+        walletId: wallet.id,
+        type: "REFUND",
+        status: "COMPLETED",
+        amount,
+        description,
+        reference,
+      },
+    }),
+  ]);
+  return updated;
+}
+
 export function walletReference(prefix: string): string {
   return `${prefix}${randomBytes(3).toString("hex").toUpperCase()}${Date.now().toString().slice(-4)}`;
 }

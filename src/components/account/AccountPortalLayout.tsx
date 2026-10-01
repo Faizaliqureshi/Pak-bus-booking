@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/account/bookings", label: "Bookings" },
+  { href: "/account/cancel-booking", label: "Cancel seats" },
   { href: "/account/purchase-history", label: "Purchase History" },
   { href: "/account/wallet", label: "Wallet" },
 ] as const;

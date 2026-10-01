@@ -100,6 +100,7 @@ export function SearchResultsClient({
   date,
 }: SearchResultsClientProps) {
   const [trips, setTrips] = useState<TripSearchResult[]>([]);
+  const [showingOtherCorridors, setShowingOtherCorridors] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -128,10 +129,13 @@ export function SearchResultsClient({
           throw new Error(tripsJson?.message || "Could not load trips.");
         }
         if (!cancelled) {
-          const list = tripsJson.data as TripSearchResult[];
-          setTrips(list);
-          if (list.length > 0) {
-            const prices = list.map((t) => t.basePrice);
+          const list = (tripsJson.data ?? []) as TripSearchResult[];
+          const others = (tripsJson.alsoOnDate ?? []) as TripSearchResult[];
+          const shown = list.length > 0 ? list : others;
+          setShowingOtherCorridors(list.length === 0 && others.length > 0);
+          setTrips(shown);
+          if (shown.length > 0) {
+            const prices = shown.map((t) => t.basePrice);
             const min = Math.floor(Math.min(...prices));
             const max = Math.ceil(Math.max(...prices));
             const paddedMax = max === min ? min + 500 : max;
@@ -466,6 +470,12 @@ export function SearchResultsClient({
         </aside>
 
         <section className="space-y-4">
+          {!loading && !error && showingOtherCorridors ? (
+            <div className="rounded-2xl border border-[#f5a623]/40 bg-[#fff8eb] px-4 py-3 text-sm text-[#0a2f6b]">
+              No coaches on {origin} → {destination} for this date. Showing{" "}
+              {filtered.length === 1 ? "the bus" : "buses"} departing that day.
+            </div>
+          ) : null}
           {!loading && !error ? (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-[#0a2f6b]/65">
@@ -518,11 +528,14 @@ export function SearchResultsClient({
           {!loading && !error && filtered.length === 0 ? (
             <div className="rounded-2xl border border-[#0a2f6b]/10 bg-white p-8 text-center">
               <p className="font-heading text-xl text-[#0a2f6b]">
-                No trips match these filters
+                {showingOtherCorridors
+                  ? "No trips match these filters"
+                  : `No buses on ${origin} → ${destination}`}
               </p>
               <p className="mt-2 text-sm text-[#0a2f6b]/65">
-                Try clearing filters or search Karachi → Lahore for tomorrow
-                after seeding the database.
+                {showingOtherCorridors
+                  ? "Try clearing filters to see coaches departing this date."
+                  : "No departures are published for this date. Check another date or corridor."}
               </p>
               {activeFilterCount > 0 ? (
                 <button

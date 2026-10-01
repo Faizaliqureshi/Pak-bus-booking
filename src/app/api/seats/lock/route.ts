@@ -23,10 +23,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { tripId, seatNumber, userId } = (body ?? {}) as Record<
-      string,
-      unknown
-    >;
+    const { tripId, seatNumber, userId, gender, boardingStopId, dropStopId } =
+      (body ?? {}) as Record<string, unknown>;
 
     if (
       !isNonEmptyString(tripId) ||
@@ -46,13 +44,21 @@ export async function POST(request: NextRequest) {
       tripId.trim(),
       seatNumber.trim(),
       userId.trim(),
+      undefined,
+      {
+        gender: typeof gender === "string" ? gender : undefined,
+        boardingStopId:
+          typeof boardingStopId === "string" ? boardingStopId : undefined,
+        dropStopId: typeof dropStopId === "string" ? dropStopId : undefined,
+      },
     );
 
     if (!result.success) {
       const conflict =
         result.message.includes("reserved") ||
         result.message.includes("booked") ||
-        result.message.includes("held");
+        result.message.includes("held") ||
+        result.message.includes("sit together");
       return NextResponse.json(result, { status: conflict ? 409 : 400 });
     }
 

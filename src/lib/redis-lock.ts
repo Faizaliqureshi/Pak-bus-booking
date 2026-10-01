@@ -2,7 +2,14 @@ import { randomUUID } from "crypto";
 import { TripSeatStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getRedis } from "@/lib/redis";
+import { assertNoMixedGenderBesideOthers } from "@/lib/seat-gender";
 import { claimSeatLock } from "@/lib/trip-inventory";
+
+export type SeatLockSeating = {
+  gender?: string;
+  boardingStopId?: string;
+  dropStopId?: string;
+};
 
 /** Default seat hold: 10 minutes */
 export const DEFAULT_SEAT_LOCK_TTL_SECONDS = 600;
@@ -48,7 +55,39 @@ export async function lockSeat(
   seatNumber: string,
   userId: string,
   ttlSeconds: number = DEFAULT_SEAT_LOCK_TTL_SECONDS,
+  seating?: SeatLockSeating,
 ): Promise<LockSeatResult> {
+  const gender = seating?.gender?.trim().toUpperCase();
+  if (gender === "MALE" || gender === "FEMALE") {
+    const trip = await prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        bus: { select: { totalSeats: true, layoutType: true } },
+        route: { include: { stops: { select: { id: true, stopOrder: true } } } },
+      },
+    });
+    if (trip) {
+      const boarding = trip.route.stops.find(
+        (s) => s.id === seating?.boardingStopId,
+      );
+      const drop = trip.route.stops.find((s) => s.id === seating?.dropStopId);
+      const boardingOrder = boarding?.stopOrder ?? 0;
+      const dropOrder = drop?.stopOrder ?? boardingOrder + 1;
+      const conflict = await assertNoMixedGenderBesideOthers({
+        tripId,
+        layoutType: trip.bus.layoutType,
+        totalSeats: trip.bus.totalSeats,
+        seats: [{ seatNumber, gender }],
+        boardingOrder,
+        dropOrder,
+        sameBookingSeatNumbers: [],
+      });
+      if (conflict) {
+        return { success: false, message: conflict };
+      }
+    }
+  }
+
   const claimed = await claimSeatLock(tripId, seatNumber, userId, ttlSeconds);
   if (!claimed.success) {
     return { success: false, message: claimed.message };

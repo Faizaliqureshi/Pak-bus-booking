@@ -13,7 +13,8 @@ import {
 import {
   PAKISTAN_CITIES,
   defaultTravelDate,
-  toDateInputValue,
+  pktToday,
+  pktTomorrow,
 } from "@/lib/booking-utils";
 import { cn } from "@/lib/utils";
 
@@ -26,13 +27,11 @@ interface SearchWidgetProps {
 }
 
 function todayIso(): string {
-  return toDateInputValue(new Date());
+  return pktToday();
 }
 
 function tomorrowIso(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return toDateInputValue(d);
+  return pktTomorrow();
 }
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;

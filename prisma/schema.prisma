@@ -81,6 +81,7 @@ model User {
   busReviews       BusReview[]
   seatHolds        PartnerSeatHold[]
   payouts          PartnerPayout[]
+  cancelPolicy     OperatorCancelPolicy?
 
   @@index([role])
   @@index([createdById])
@@ -338,6 +339,24 @@ model PartnerPayout {
 
   @@index([operatorId, status])
   @@map("partner_payouts")
+}
+
+/// Company-wise passenger cancellation / refund rules for one operator.
+model OperatorCancelPolicy {
+  id                     String   @id @default(cuid())
+  operatorId             String   @unique
+  passengerCancelEnabled Boolean  @default(true)
+  /// Passenger self-serve stops this many hours before departure.
+  cutoffHours            Int      @default(2)
+  /// [{ minHours: 24, refundPercent: 90 }, ...] highest matching minHours wins.
+  tiers                  Json
+  note                   String?
+  updatedAt              DateTime @updatedAt
+  createdAt              DateTime @default(now())
+
+  operator User @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+
+  @@map("operator_cancel_policies")
 }
 
 /// PSP fee schedule. Booking.paymentMethod stays as the wallet/code the passenger picked.

@@ -178,6 +178,27 @@ export async function markTripSeatsBooked(
   });
 }
 
+/** Put cancelled paid seats back on sale. */
+export async function releaseTripSeats(
+  tripId: string,
+  seatNumbers: string[],
+): Promise<void> {
+  if (seatNumbers.length === 0) return;
+  await prisma.tripSeat.updateMany({
+    where: {
+      tripId,
+      seatNumber: { in: seatNumbers },
+      status: TripSeatStatus.BOOKED,
+    },
+    data: {
+      status: TripSeatStatus.AVAILABLE,
+      bookingId: null,
+      lockedByUserId: null,
+      lockedUntil: null,
+    },
+  });
+}
+
 /** Confirm the passenger still owns these seats in Neon (Redis is optional). */
 export async function verifySeatsHeldByUser(
   tripId: string,

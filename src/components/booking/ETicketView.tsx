@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import { Download, Printer } from "lucide-react";
+import { Download, Loader2, Printer } from "lucide-react";
 import { TicketPassLogo } from "@/components/brand/TicketPassLogo";
 import { Button } from "@/components/ui/button";
 import { formatPkr, formatTime } from "@/lib/booking-utils";
@@ -27,13 +29,59 @@ export interface TicketViewData {
     cnic: string | null;
     gender: string;
   }>;
+  canCancel?: boolean;
+  refundPercent?: number;
+  companyName?: string;
 }
 
 export function ETicketView({ ticket }: { ticket: TicketViewData }) {
+  const router = useRouter();
+  const [busySeat, setBusySeat] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const canCancel = Boolean(ticket.canCancel);
   const seats = ticket.passengers
     .map((p) => p.seatNumber)
     .sort((a, b) => Number(a) - Number(b))
     .join(", ");
+
+  async function cancelSeat(seatNumber: string) {
+    if (
+      !window.confirm(
+        `Cancel seat ${seatNumber} under ${ticket.companyName ?? "this company"} rules${
+          typeof ticket.refundPercent === "number"
+            ? ` (${ticket.refundPercent}% wallet refund)`
+            : ""
+        }?`,
+      )
+    ) {
+      return;
+    }
+    setBusySeat(seatNumber);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/account/bookings/${encodeURIComponent(ticket.pnr)}/cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ seatNumbers: [seatNumber] }),
+        },
+      );
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Could not cancel that seat.");
+      }
+      if ((json.data.remainingSeats as string[]).length === 0) {
+        router.push("/account/bookings");
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Cancel failed.");
+    } finally {
+      setBusySeat(null);
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
@@ -47,14 +95,7 @@ export function ETicketView({ ticket }: { ticket: TicketViewData }) {
             className="inline-flex h-10 items-center gap-2 rounded-lg border border-teal-800 px-3 text-sm font-semibold text-teal-900 hover:bg-teal-50"
           >
             <Download className="size-4" />
-            E-ticket PDF
-          </a>
-          <a
-            href={`/api/account/bookings/${encodeURIComponent(ticket.pnr)}/invoice`}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-teal-800 px-3 text-sm font-semibold text-teal-900 hover:bg-teal-50"
-          >
-            <Download className="size-4" />
-            Invoice PDF
+            Download E-Ticket
           </a>
           <Button
             type="button"
@@ -149,13 +190,34 @@ export function ETicketView({ ticket }: { ticket: TicketViewData }) {
                         CNIC {p.cnic ? maskCnic(p.cnic) : "—"}
                       </p>
                     </div>
-                    <p className="rounded-full bg-teal-900/5 px-3 py-1 text-xs font-medium text-teal-900">
-                      Seat {p.seatNumber}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="rounded-full bg-teal-900/5 px-3 py-1 text-xs font-medium text-teal-900">
+                        Seat {p.seatNumber}
+                      </p>
+                      {canCancel ? (
+                        <button
+                          type="button"
+                          disabled={busySeat === p.seatNumber}
+                          onClick={() => void cancelSeat(p.seatNumber)}
+                          className="rounded-full border border-red-700/40 px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-50 disabled:opacity-50 print:hidden"
+                        >
+                          {busySeat === p.seatNumber ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            "Cancel seat"
+                          )}
+                        </button>
+                      ) : null}
+                    </div>
                   </li>
                 ))}
               </ul>
             </div>
+            {error ? (
+              <p className="text-sm text-red-700 print:hidden" role="alert">
+                {error}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-col items-center justify-start gap-3 rounded-xl border border-dashed border-teal-900/20 bg-[#fbfdfc] p-4 text-center">

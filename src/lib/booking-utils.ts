@@ -25,6 +25,16 @@ export function normalizeCityForSearch(city: string): string[] {
   return [city];
 }
 
+/** True when a city name appears in a station or city field. */
+export function textMatchesSearchCity(text: string, cities: string[]): boolean {
+  const hay = text.trim().toLowerCase();
+  if (!hay) return false;
+  return cities.some((city) => {
+    const needle = city.trim().toLowerCase();
+    return Boolean(needle) && (hay === needle || hay.includes(needle));
+  });
+}
+
 export function formatPkr(amount: number): string {
   return new Intl.NumberFormat("en-PK", {
     style: "currency",
@@ -57,16 +67,21 @@ export function formatTime(iso: string | Date): string {
 }
 
 export function toDateInputValue(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return date.toLocaleDateString("en-CA", { timeZone: "Asia/Karachi" });
+}
+
+export function pktToday(): string {
+  return toDateInputValue(new Date());
+}
+
+export function pktTomorrow(): string {
+  const [year, month, day] = pktToday().split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + 1));
+  return next.toISOString().slice(0, 10);
 }
 
 export function defaultTravelDate(): string {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return toDateInputValue(tomorrow);
+  return pktTomorrow();
 }
 
 export type BusLayoutType = "2x2" | "2x1" | "2x1_SLEEPER" | string;

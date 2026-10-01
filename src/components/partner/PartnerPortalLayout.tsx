@@ -52,6 +52,9 @@ export default async function PartnerPortalLayout({
             <Link href="/partner/finance" className="hover:underline">
               Finance
             </Link>
+            <Link href="/partner/policy" className="hover:underline">
+              Cancel policy
+            </Link>
             <Link href="/partner/conductors" className="hover:underline">
               Conductors
             </Link>

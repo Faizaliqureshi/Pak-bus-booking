@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { PaymentStatus } from "@prisma/client";
 import { getSessionUser } from "@/lib/auth";
 import { cityCode, formatDuration } from "@/lib/booking-utils";
+import {
+  getCompanyPolicy,
+  quoteCompanyRefund,
+} from "@/lib/cancel-policy";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -28,6 +32,7 @@ export async function GET() {
       where: { userId: session.id },
       orderBy: { createdAt: "desc" },
       include: {
+        tickets: { select: { seatNumber: true }, orderBy: { seatNumber: "asc" } },
         trip: {
           include: {
             bus: {
@@ -53,15 +58,34 @@ export async function GET() {
     });
 
     const now = Date.now();
-    const bookings = rows.map((b) => {
+    const bookings = await Promise.all(rows.map(async (b) => {
       const departure = b.trip.departureTime;
       const arrival = b.trip.arrivalTime;
       const issued = b.paymentStatus === PaymentStatus.PAID;
       const expired = arrival.getTime() < now;
+      const seats = b.tickets.map((t) => t.seatNumber);
+      const policy = await getCompanyPolicy(
+        b.trip.bus.operatorId,
+        operatorLabel(b.trip.bus.operator.name),
+      );
+      const quote = quoteCompanyRefund({
+        policy,
+        departure,
+        fare: Number(b.totalPrice),
+        actor: "passenger",
+      });
       return {
         id: b.id,
         pnr: b.pnr,
         paymentStatus: b.paymentStatus,
+        totalPrice: Number(b.totalPrice),
+        seats,
+        cancellable: issued && quote.allowed,
+        refundPercent: quote.refundPercent,
+        estimatedRefund: quote.refundAmount,
+        cancelReason: quote.reason,
+        policyNote: policy.note,
+        cutoffHours: policy.cutoffHours,
         createdAt: b.createdAt.toISOString(),
         departureTime: departure.toISOString(),
         arrivalTime: arrival.toISOString(),
@@ -84,7 +108,7 @@ export async function GET() {
             }
           : null,
       };
-    });
+    }));
 
     return NextResponse.json({ success: true, data: { bookings } });
   } catch (error) {
